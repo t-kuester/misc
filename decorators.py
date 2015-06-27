@@ -93,6 +93,16 @@ def pass_by_value(f):
 		return f(*args_copied, **kwargs_copied)
 	return _f
 
+@decorator
+def keep_trying(f):
+	def _f(*args, **kwargs):
+		while True:
+			try:
+				return f(*args, **kwargs)
+			except Exception as e:
+				print e, "trying again..."
+	return _f
+	
 # TODO other ideas:
 # synchronized function calls
 # invocation counter
