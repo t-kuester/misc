@@ -9,6 +9,7 @@ See also: http://wiki.python.org/moin/PythonDecoratorLibrary
 """
 
 import copy
+import functools
 
 def decorator(deco):
 	"""Meta-Decorator, having the effect that decorated functions retain their
@@ -41,11 +42,11 @@ def trace(f):
 	the results. Lines are indented to show the depth in the call hierarchy."""
 	trace.depth = 0
 	def _f(*args, **kwargs):
-		print "  " * trace.depth, ">", f.__name__, args, kwargs if kwargs else ""
+		print("  " * trace.depth, ">", f.__name__, args, kwargs if kwargs else "")
 		trace.depth += 1
 		res = f(*args, **kwargs)
 		trace.depth -= 1
-		print "  " * trace.depth, "<", res
+		print("  " * trace.depth, "<", res)
 		return res
 	return _f
 
@@ -54,7 +55,7 @@ def varargs(f):
 	"""Function Decorator that makes every two-parameter-function a varargs
 	function by using reduce."""
 	def _f(*args):
-		return reduce(f, args)
+		return functools.reduce(f, args)
 	return _f
 	
 @decorator
@@ -62,7 +63,7 @@ def deprecated(f):
 	"""Function Decorator, printing a warning when a function with this decorator
 	is called."""
 	def _f(*args, **kwargs):
-		print "WARNING: Call to deprecated function", f.__name__, args
+		print("WARNING: Call to deprecated function", f.__name__, args)
 		return f(*args, **kwargs)
 	return _f
 
@@ -74,10 +75,10 @@ def typecheck(*types, **kwtypes):
 		def _f(*args, **kwargs):
 			for a, t in zip(args, types):
 				if not isinstance(a, t):
-					print "WARNING: Expected", t, "got", a
+					print("WARNING: Expected", t, "got", a)
 			for k, a in kwargs.items():
 				if k in kwtypes and not isinstance(a, kwtypes[k]):
-					print "WARNING: Expected", kwtypes[k], "got", a
+					print("WARNING: Expected", kwtypes[k], "got", a)
 			return f(*args, **kwargs)
 		return _f
 	return __f
@@ -100,7 +101,7 @@ def keep_trying(f):
 			try:
 				return f(*args, **kwargs)
 			except Exception as e:
-				print e, "trying again..."
+				print(e, "trying again...")
 	return _f
 	
 # TODO other ideas:
@@ -123,14 +124,14 @@ if __name__ == "__main__":
 
 	@trace
 	def fib2(n):
-		print "FOOOO"
+		print("FOOOO")
 		return fib(n-1) + fib(n-2) if n > 1 else n
 		
 	fib(10)
 
-	print fib.__name__
-	print fib.__doc__
-	print fib.cache
+	print(fib.__name__)
+	print(fib.__doc__)
+	print(fib.cache)
 
 	@trace
 	@memo
