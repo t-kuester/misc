@@ -10,7 +10,7 @@ can have characteristics similar to a wide range of trees and bushes.
 """
 
 import random, cmath, math
-from Tkinter import Frame, Canvas, Scale, Button, Checkbutton, IntVar
+from tkinter import Frame, Canvas, Scale, Button, Checkbutton, IntVar
 
 class FracTree(object):
 	"""Fractal Tree Class.
@@ -50,7 +50,7 @@ class FracTree(object):
 		"""
 		if levels == 0 or random.random() > p_exp or a_from > a_to:
 			return
-		if self.left == None and self.right == None:
+		if self.left is None and self.right is None:
 			a = random.randint(a_from, a_to)
 			self.spawn(a)
 			levels -= 1
@@ -109,7 +109,7 @@ class FracTreeFrame(Frame):
 	def expand(self, levels=1):
 		"""Expand exiting tree with one more level and given parameters
 		"""
-		if self.tree != None:
+		if self.tree is not None:
 			self.tree.expand_random(levels, self.a_from.get(), self.a_to.get(),
 			                                     alternate=self.alternate.get())
 			self.canvas.delete("all")
@@ -119,7 +119,7 @@ class FracTreeFrame(Frame):
 		"""Recursively paint the given tree to the canvas.
 		"""
 		c_trunk, c_leafs = "#483F00", "#3C631B"
-		if ft != None:
+		if ft is not None:
 			x1, y1 = ft.p.real, ft.p.imag
 			x2, y2 = (ft.p + ft.v).real, (ft.p + ft.v).imag
 			if draw_leafs and not (ft.left and ft.right):

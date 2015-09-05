@@ -14,7 +14,8 @@ Tobias Kuester, 2014
 from random import randint
 from time import time
 from operator import add
-
+from tkinter import Frame, Canvas, Button
+	
 
 class TwoDimAutomata:
 	"""Abstract super-class for the actual automata, providing basic 
@@ -61,13 +62,13 @@ class TwoDimAutomata:
 
 	def print_matrix(self, matrix):
 		"""Print the current state of the automaton."""
-		print '\n'.join(''.join(('# ' if cell else '. ') for cell in line)
-				                for line in matrix)
+		print('\n'.join(''.join(('# ' if cell else '. ') for cell in line)
+								for line in matrix))
 	
 	def print_time(self):
 		"""Print the time it took to calculate the current step."""
 		t=time()
-		print (t - self._last)
+		print(t - self._last)
 		self._last = t
 
 
@@ -81,7 +82,7 @@ class Copier(TwoDimAutomata):
 	def initialize(self):
 		s, e, f = 4, 5, 9
 		for (x,y) in ((n,m) for n in range(s*self.X/f, e*self.X/f) 
-		                    for m in range(s*self.Y/f, e*self.Y/f)):
+							for m in range(s*self.Y/f, e*self.Y/f)):
 			self.bitmap[y][x] = 1 if x % 3 ==0 and y % 3 == 0 else 0
 
 
@@ -98,8 +99,6 @@ class GameOfLife(TwoDimAutomata):
 
 
 
-from Tkinter import Frame, Canvas, Button
-	
 class Application(Frame):
 	"""This simple UI is used for visualizing and advancin the current state
 	of the automata.
@@ -117,14 +116,14 @@ class Application(Frame):
 		self.running = False
 		
 	def create_field(self):
-		self.canvas = Canvas(self, width=self.x*self.z, height=self.y*self.z, bg="white")
+		X, Y, Z = self.x, self.y, self.z
+		self.canvas = Canvas(self, width=X*Z, height=Y*Z, bg="white")
 		self.canvas.bind("<Button-1>", self.next_step)
 		self.canvas.pack(side='bottom')
-#		X, Y, Z = self.x, self.y, self.z
-#		self.ids = {}
-#		for (x,y) in [(n,m) for n in range(X) for m in range(Y)]:
-#			self.ids[(x,y)] = self.canvas.create_rectangle(x*Z, y*Z, (x+1)*Z, (y+1)*Z, 
-#                             							outline='white', fill='white')
+		self.ids = {}
+		for (x,y) in [(n,m) for n in range(X) for m in range(Y)]:
+			self.ids[(x,y)] = self.canvas.create_rectangle(x*Z, y*Z, (x+1)*Z, (y+1)*Z, 
+														   outline='white', fill='white')
 
 	def create_buttons(self):
 		Button(self, text="Initialize", command=self.new_game).pack(side='left')
@@ -148,18 +147,10 @@ class Application(Frame):
 			self.next_step()
 		
 	def update_canvas(self):
-#		for (x,y) in ((n,m) for n in range(self.x) for m in range(self.y)):
-#			if self.engine.bitmap[x][y] != self.engine.backup[x][y]:
-#				color = "black" if self.engine.bitmap[x][y] else "white"
-#				self.canvas.itemconfigure(self.ids[(x, y)], fill=color, outline=color)
-		X, Y, Z = self.x, self.y, self.z
-		self.canvas.delete("all")
-		for (x,y) in ((n,m) for n in range(X) 
-		                    for m in range(Y) if self.engine.bitmap[m][n]):
-			self.canvas.create_rectangle(x*Z, y*Z, (x+1)*Z, (y+1)*Z, 
-                     					 outline='black', fill='black')
-		self.canvas.update()
-
+		for (x,y) in ((n,m) for n in range(self.x) for m in range(self.y)):
+			if self.engine.bitmap[x][y] != self.engine.backup[x][y]:
+				color = "black" if self.engine.bitmap[x][y] else "white"
+				self.canvas.itemconfigure(self.ids[(x, y)], fill=color, outline=color)
 
 # start application
 if __name__ == "__main__":
@@ -168,7 +159,7 @@ if __name__ == "__main__":
 		import psyco
 		psyco.full()
 	except ImportError:
-		print "Failed to load psyco"
+		print("Failed to load psyco")
 
 	# engine = Copier
 	engine = GameOfLife

@@ -8,7 +8,7 @@ Lindenmayer System (https://en.wikipedia.org/wiki/L-system).
 Tobias Kuester, 2014
 """
 
-from Tkinter import *
+from tkinter import Frame, Canvas, Listbox, StringVar, Label, Button, Entry, Text
 from math import sqrt, pi, sin, cos
 
 # Width and Height of the Frame
@@ -92,7 +92,7 @@ class FracFrame(Frame):
 		i = self.listbox.curselection()
 		if i:
 			fractal = FRACTALS[self.listbox.get(i)]
-			print fractal
+			print(fractal)
 			lvl, length, ang, rel, start, rules = fractal
 			self.lvlVar.set(lvl)
 			self.lenVar.set(length)
@@ -117,12 +117,12 @@ class FracFrame(Frame):
 		start = self.startVar.get()
 		
 		rules = dict(line.split(":") for line in self.rules.get('0.0', "end").splitlines())
-		print (lvl, length, ang, rel, start, rules)
+		print(lvl, length, ang, rel, start, rules)
 
 		self.canvas.delete("all")
 		self.points = [(self.x, self.y)]
 		self.draw_fractal(lvl, length, ang, rel, start, rules)
-		print len(self.points)
+		print(len(self.points))
 		
 		self.canvas.create_line(self.points)
 			
