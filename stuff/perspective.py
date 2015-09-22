@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 import math, cmath
-from operator import add, sub
-from itertools import product
+
+
+### BASIC 3D MODEL STUFF ###
+
 
 class Point:
 	"""Class representing a point in space. Each point is represented by three
@@ -27,92 +29,54 @@ class Point:
 	def coords(self):
 		"""Get (x, y, z) coordinates as a tuple."""
 		return (self.x, self.y, self.z)
+		
+	def move(self, d_x, d_y, d_z):
+		"""Move point by given deltas and return self."""
+		self.x += d_x
+		self.y += d_y
+		self.z += d_z
 
 
 class Camera(Point):
-	"""Class representing a Camera position. The camera inherits from Point,
-	but also has a heading, represented by three angles.
+	"""Class representing a Camera position. The camera inherits from Point, but
+	also has a heading, represented by two angles: yaw and pitch. A "roll" angle
+	is not implemented, but might added in a sub-class, once this is working.
 	"""
 
-	def __init__(self, x=0, y=0, z=0, ax=0, ay=0, az=0):
+	def __init__(self, x=0, y=0, z=0, yaw=0, pitch=0, roll=0):
 		Point.__init__(self, x, y, z)
-		self.ax = ax
-		self.ay = ay
-		self.az = az
+		self.yaw = yaw
+		self.pitch = pitch
+		self.roll = roll
 		
 	def __repr__(self):
 		return "Camera(%.1f, %.1f, %.1f, %.1f, %.1f, %.1f)" % (self.coords() + self.angles())
 
 	def angles(self):
-		"""Get (alpha, beta, gamma) angles as a tuple."""
-		return (self.ax, self.ay, self.az)
+		"""Get yaw and pitch (and roll=0) angles as a tuple."""
+		return (self.yaw, self.pitch, self.roll)
 		
-	def move_absolute(self, dx, dy, dz, dax, day, daz):
-		"""Move absolutely, directly manipulating the different degrees.
-		"""
-		self.x += dx
-		self.y += dy
-		self.z += dz
-		self.ax += dax
-		self.ay += day
-		self.az += daz
+	def turn(self, d_yaw, d_pitch, d_roll):
+		"""Turn camera by given angles and return self."""
+		self.yaw = (self.yaw + d_yaw) % 360
+		self.pitch = min(max(self.pitch + d_pitch, -90), 90)
 		
-	def move_quake(self, fwd, strafe, vert, yaw, pitch):
-		"""Move like in Quake and other FPS; movement is always in a plane, but
-		relative to heading. No roll.
-		"""
-		print("MOVE_QUAKE not yet implemented")
-		pass
+	def move_rel(self, forward, right, up):
+		"""Move relative to the camera's heading (but still in a plane)."""
 		
-	def move_descent(self, fwd, strafe, vert, yaw, pitch, roll):
-		"""Move like in Descent and similar games; all movement and rotation is
-		relative to current heading.
-		"""
-		print("MOVE_descent not yet implemented")
-		pass
+		c = complex(right, forward) / cmath.rect(1, self.yaw)
 		
-
-def create_block(w, h, d, x=0, y=0, z=0, ax=0, ay=0, az=0):
-	p1 = Point(0, 0, 0)
-	p2 = Point(w, 0, 0)
-	p3 = Point(w, 0, d)
-	p4 = Point(0, 0, d)
-	p5 = Point(0, h, 0)
-	p6 = Point(w, h, 0)
-	p7 = Point(w, h, d)
-	p8 = Point(0, h, d)
-	
-	# shift and rotate
-	for p in [p1, p2, p3, p4, p5, p6, p7, p8]:
-		coords = map(add, p.coords(), (x-w/2., y-h/2., z-d/2.))
-		coords = rotate(coords, (ax, ay, az))
-		p.x, p.y, p.z = coords
-	
-	return [(p1, p2), (p2, p3), (p3, p4), (p4, p1),
-		    (p1, p5), (p2, p6), (p3, p7), (p4, p8),
-		    (p5, p6), (p6, p7), (p7, p8), (p8, p5)]
-
-
-def projection(point, side):
-	"""Calculate the projection "on screen" of a (normalized) point.
-	Return a tuple (x-position, y-position, distance).
-	"""
-	x, y, z = point.coords()
-	if z > 0:
-		pos_x = x/z * side/2 + side/2
-		pos_y = y/z * side/2 + side/2
-#		pos_x = x / 1+(math.sqrt(math.exp(z))) * side/2 + side/2
-#		pos_y = y / 1+(math.sqrt(math.exp(z))) * side/2 + side/2
-		dist = math.sqrt(x**2 + y**2 + z**2)
-		return (pos_x, pos_y, dist)
-	return 0, 0, 0
+		d_x = c.real
+		d_y = c.imag
+		d_z = up
+		self.move(d_x, d_y, d_z)
 
 
 def normalize(point, camera):
 	"""Normalize Point w.r.t. camera position, i.e. shift and rotate so as if
 	the camera were at (0,0,0) and looking straight.
 	"""
-	x, y, z = map(sub, point.coords(), camera.coords())
+	x, y, z = [p - c for p, c in zip(point.coords(), camera.coords())]
 	x, y, z = rotate((x, y, z), camera.angles())
 	return Point(x, y, z)
 
@@ -121,19 +85,23 @@ def rotate(coords, angles):
 	"""Rotate point by converting the angles to complex numbers and dividing.
 	"""
 	x, y, z = coords
-	ax, ay, az = angles
-	cxy = complex(x, y)               / cmath.rect(1, az*math.pi/180)
-	cxz = complex(cxy.real, z)        / cmath.rect(1, ay*math.pi/180)
-	cyz = complex(cxy.imag, cxz.imag) / cmath.rect(1, ax*math.pi/180)
+	yaw, pitch, roll = angles
+	cxy = complex(x, y)               / cmath.rect(1, roll * math.pi/180)
+	cxz = complex(cxy.real, z)        / cmath.rect(1, yaw   * math.pi/180)
+	cyz = complex(cxy.imag, cxz.imag) / cmath.rect(1, pitch  * math.pi/180)
 	return cxz.real, cyz.real, cyz.imag
 	
-	
+
+
+### SIMPLE 3D FRAME STUFF ###	
 
 from tkinter import Frame, Canvas
 
 SIDE = 800
 
-class ThreeDFrame(Frame):
+class Simple3DFrame(Frame):
+	"""Simple Frame class for showing objects and moving around within 3D space.
+	"""
 
 	def __init__(self, edges):
 		Frame.__init__(self, master=None)
@@ -154,65 +122,82 @@ class ThreeDFrame(Frame):
 		self.update()
 	
 	def shift(self, event):
+		key = event.keysym
+		MOVEMENT, TILT = 0.5, 5.0
 		
-		movement = {"mode": "ABS"}
+		d_fwd = ((key == "w") - (key == "s")) * MOVEMENT
+		d_rgt = ((key == "d") - (key == "a")) * MOVEMENT
+		d_up  = ((key == "r") - (key == "f")) * MOVEMENT
 		
-		# movement
-		MOVEMENT = 0.5
-		if event.keysym == "d": movement["x"] = +MOVEMENT
-		if event.keysym == "a": movement["x"] = -MOVEMENT
-		if event.keysym == "f": movement["y"] = +MOVEMENT
-		if event.keysym == "r": movement["y"] = -MOVEMENT
-		if event.keysym == "w": movement["z"] = +MOVEMENT
-		if event.keysym == "s": movement["z"] = -MOVEMENT
-		# tilt
-		TILT = 5
-		if event.keysym == "Up":    movement["ax"] = +TILT
-		if event.keysym == "Down":  movement["ax"] = -TILT
-		if event.keysym == "Left":  movement["ay"] = +TILT
-		if event.keysym == "Right": movement["ay"] = -TILT
-		if event.keysym == "e":     movement["az"] = +TILT
-		if event.keysym == "q":     movement["az"] = -TILT
+		d_pitch = ((key == "Up")   - (key == "Down"))  * TILT
+		d_yaw =   ((key == "Left") - (key == "Right")) * TILT
+		d_roll =  ((key == "e")    - (key == "q"))     * TILT
 		
-		self.move(**movement)
-		
+		self.camera.move(d_rgt, d_up, d_fwd)
+		# self.camera.move_rel(d_fwd, d_rgt, d_up)
+		self.camera.turn(d_yaw, d_pitch, d_roll)
 		self.update()
 	
 	def update(self):
-		self.canvas.delete("all")
-		self.canvas.create_text(150, 10, text=repr(self.camera))
+		self.canvas.delete("line", "point", "text")
+		self.canvas.create_text(150, 10, text=repr(self.camera), tags="text")
 		for p1, p2 in self.edges:
-			p1 = self.norm(p1)
-			p2 = self.norm(p2)
+			p1 = normalize(p1, self.camera)
+			p2 = normalize(p2, self.camera)
 			self.draw_point(p1)
 			self.draw_point(p2)
 			self.draw_line(p1, p2)
 
 	def draw_point(self, point):
-		x, y, d = projection(point, SIDE)
-		s = 100 / d if d else 100
-		self.canvas.create_oval(x - s, y - s, x + s, y + s)
+		x, y, d = self.project(point)
+		# s = 100 / d if d else 100
+		s = 0
+		self.canvas.create_oval(x - s, y - s, x + s, y + s, tags="point")
 		
 	def draw_line(self, point1, point2):
-		x1, y1, _ = projection(point1, SIDE)
-		x2, y2, _ = projection(point2, SIDE)
-		
-		self.canvas.create_line(x1, y1, x2, y2)
+		x1, y1, _ = self.project(point1)
+		x2, y2, _ = self.project(point2)
+		self.canvas.create_line(x1, y1, x2, y2, tags="line")
 
-	def norm(self, point):
-		return normalize(point, self.camera)
-		
-	def move(self, mode, x=0, y=0, z=0, ax=0, ay=0, az=0):
-		if mode == "ABS":
-			self.camera.move_absolute(x, y, z, ax, ay, az)
-		elif mode == "QAK":
-			self.camera.move_quake(x, y, z, ax, ay)
-		elif mode == "DSC":
-			self.camera.move_descent(x, y, z, ax, ay, az)
-		else:
-			print("UNKNOWN MOVEMENT MODE: %s" % mode)
+	def project(self, point):
+		"""Calculate the projection "on screen" of a (normalized) point.
+		Return a tuple (x-position, y-position, distance).
+		"""
+		x, y, z = point.coords()
+		if z > 0:
+			pos_x = (1 + x / z) * SIDE/2
+			pos_y = (1 - y / z) * SIDE/2
+	#		pos_x = x / 1+(math.sqrt(math.exp(z))) * SIDE/2 + SIDE/2
+	#		pos_y = y / 1+(math.sqrt(math.exp(z))) * SIDE/2 + SIDE/2
+			dist = math.sqrt(x**2 + y**2 + z**2)
+			return (pos_x, pos_y, dist)
+		return 0, 0, 0
 
+### TESTING AND TEST MODEL CREATION STUFF ###
 
+def create_block(w, h, d, x=0, y=0, z=0, ax=0, ay=0, az=0):
+	"""Helper method for creating a "block" of points, being pairwise connected
+	with lines."""
+	p1 = Point(0, 0, 0)
+	p2 = Point(w, 0, 0)
+	p3 = Point(w, 0, d)
+	p4 = Point(0, 0, d)
+	p5 = Point(0, h, 0)
+	p6 = Point(w, h, 0)
+	p7 = Point(w, h, d)
+	p8 = Point(0, h, d)
+	
+	# shift and rotate
+	for p in [p1, p2, p3, p4, p5, p6, p7, p8]:
+		coords = [p + c for p, c in zip(p.coords(), (x-w/2, y-h/2, z-d/2))]
+		coords = rotate(coords, (ax, ay, az))
+		p.x, p.y, p.z = coords
+	
+	return [(p1, p2), (p2, p3), (p3, p4), (p4, p1),
+		    (p1, p5), (p2, p6), (p3, p7), (p4, p8),
+		    (p5, p6), (p6, p7), (p7, p8), (p8, p5)]
+
+# testing
 if __name__ == "__main__":
 
 	block1 = create_block(5, 5, 5, -2, 5, 7)
@@ -220,6 +205,6 @@ if __name__ == "__main__":
 	block3 = create_block(1, 1, 1, 0, 0, 0, 0, 0, 0)
 	block4 = create_block(1, 1, 1, 0, 0, 0, 45, 45, 45)
 	
-	frame = ThreeDFrame(block1 + block2 + block3);
+	frame = Simple3DFrame(block1 + block2 + block3);
 	frame.mainloop()
 	
