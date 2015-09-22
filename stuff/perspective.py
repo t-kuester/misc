@@ -1,10 +1,14 @@
 #!/usr/bin/python
 
+""" Very simple "3D engine", purely for playing around with perspective and
+stuff and generally for "doing it myself", not for productive use of any kind.
+
+Tobias Kuester, 2014
+"""
+
 import math, cmath
 
-
 ### BASIC 3D MODEL STUFF ###
-
 
 class Point:
 	"""Class representing a point in space. Each point is represented by three
@@ -62,13 +66,9 @@ class Camera(Point):
 		self.pitch = min(max(self.pitch + d_pitch, -90), 90)
 		
 	def move_rel(self, forward, right, up):
-		"""Move relative to the camera's heading (but still in a plane)."""
-		
-		c = complex(right, forward) / cmath.rect(1, self.yaw)
-		
-		d_x = c.real
-		d_y = c.imag
-		d_z = up
+		"""Move relative to the camera's heading, but still in a plane, 
+		i.e. using only yaw but ignoring pitch and roll."""
+		d_x, d_y, d_z = rotate(right, up, forward, -self.yaw, 0, 0)
 		self.move(d_x, d_y, d_z)
 
 
@@ -77,27 +77,25 @@ def normalize(point, camera):
 	the camera were at (0,0,0) and looking straight.
 	"""
 	x, y, z = [p - c for p, c in zip(point.coords(), camera.coords())]
-	x, y, z = rotate((x, y, z), camera.angles())
+	x, y, z = rotate(x, y, z, *camera.angles())
 	return Point(x, y, z)
 
-
-def rotate(coords, angles):
+def rotate(x, y, z, yaw, pitch, roll):
 	"""Rotate point by converting the angles to complex numbers and dividing.
+	
+	TODO order of operations is now: roll, yaw, pitch... is this the best way?
 	"""
-	x, y, z = coords
-	yaw, pitch, roll = angles
-	cxy = complex(x, y)               / cmath.rect(1, roll * math.pi/180)
-	cxz = complex(cxy.real, z)        / cmath.rect(1, yaw   * math.pi/180)
-	cyz = complex(cxy.imag, cxz.imag) / cmath.rect(1, pitch  * math.pi/180)
+	cxy = complex(x, y)               / cmath.rect(1, math.radians(roll))
+	cxz = complex(cxy.real, z)        / cmath.rect(1, math.radians(yaw))
+	cyz = complex(cxy.imag, cxz.imag) / cmath.rect(1, math.radians(pitch))
 	return cxz.real, cyz.real, cyz.imag
 	
-
 
 ### SIMPLE 3D FRAME STUFF ###	
 
 from tkinter import Frame, Canvas
 
-SIDE = 800
+SIDE = 600
 
 class Simple3DFrame(Frame):
 	"""Simple Frame class for showing objects and moving around within 3D space.
@@ -133,8 +131,8 @@ class Simple3DFrame(Frame):
 		d_yaw =   ((key == "Left") - (key == "Right")) * TILT
 		d_roll =  ((key == "e")    - (key == "q"))     * TILT
 		
-		self.camera.move(d_rgt, d_up, d_fwd)
-		# self.camera.move_rel(d_fwd, d_rgt, d_up)
+		# self.camera.move(d_rgt, d_up, d_fwd)
+		self.camera.move_rel(d_fwd, d_rgt, d_up)
 		self.camera.turn(d_yaw, d_pitch, d_roll)
 		self.update()
 	
@@ -144,14 +142,13 @@ class Simple3DFrame(Frame):
 		for p1, p2 in self.edges:
 			p1 = normalize(p1, self.camera)
 			p2 = normalize(p2, self.camera)
-			self.draw_point(p1)
-			self.draw_point(p2)
+			# self.draw_point(p1)
+			# self.draw_point(p2)
 			self.draw_line(p1, p2)
 
 	def draw_point(self, point):
 		x, y, d = self.project(point)
-		# s = 100 / d if d else 100
-		s = 0
+		s = 100 / d if d else 100
 		self.canvas.create_oval(x - s, y - s, x + s, y + s, tags="point")
 		
 	def draw_line(self, point1, point2):
@@ -162,13 +159,15 @@ class Simple3DFrame(Frame):
 	def project(self, point):
 		"""Calculate the projection "on screen" of a (normalized) point.
 		Return a tuple (x-position, y-position, distance).
+		
+		TODO problem with lines with one end outside of screen / behind camera
 		"""
 		x, y, z = point.coords()
 		if z > 0:
 			pos_x = (1 + x / z) * SIDE/2
 			pos_y = (1 - y / z) * SIDE/2
-	#		pos_x = x / 1+(math.sqrt(math.exp(z))) * SIDE/2 + SIDE/2
-	#		pos_y = y / 1+(math.sqrt(math.exp(z))) * SIDE/2 + SIDE/2
+			# pos_x = (1 + x / 1+(math.sqrt(math.exp(z)))) * SIDE/2
+			# pos_y = (1 - y / 1+(math.sqrt(math.exp(z)))) * SIDE/2
 			dist = math.sqrt(x**2 + y**2 + z**2)
 			return (pos_x, pos_y, dist)
 		return 0, 0, 0
@@ -188,9 +187,9 @@ def create_block(w, h, d, x=0, y=0, z=0, ax=0, ay=0, az=0):
 	p8 = Point(0, h, d)
 	
 	# shift and rotate
-	for p in [p1, p2, p3, p4, p5, p6, p7, p8]:
+	for p in (p1, p2, p3, p4, p5, p6, p7, p8):
 		coords = [p + c for p, c in zip(p.coords(), (x-w/2, y-h/2, z-d/2))]
-		coords = rotate(coords, (ax, ay, az))
+		coords = rotate(*(coords + [ax, ay, az]))
 		p.x, p.y, p.z = coords
 	
 	return [(p1, p2), (p2, p3), (p3, p4), (p4, p1),
@@ -203,8 +202,8 @@ if __name__ == "__main__":
 	block1 = create_block(5, 5, 5, -2, 5, 7)
 	block2 = create_block(2, 5, 3, -4, 3, 1, 30, 45, 60)
 	block3 = create_block(1, 1, 1, 0, 0, 0, 0, 0, 0)
-	block4 = create_block(1, 1, 1, 0, 0, 0, 45, 45, 45)
+	block4 = create_block(1, 1, 1, 2, 2, 2, 45, 45, 45)
 	
-	frame = Simple3DFrame(block1 + block2 + block3);
+	frame = Simple3DFrame(block1 + block2 + block3 + block4);
 	frame.mainloop()
 	
