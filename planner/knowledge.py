@@ -154,7 +154,7 @@ def create_beliefs(*objects):
 		for field in dir(obj):
 			value = getattr(obj, field)
 			if field[0] != "_" and not callable(value):
-				if hasattr(value, "__iter__"):
+				if hasattr(value, "__iter__") and type(value) != str:
 					beliefs += [ Belief(field, obj, v) for v in value ]
 				else:
 					beliefs += [ Belief(field, obj, value) ]
