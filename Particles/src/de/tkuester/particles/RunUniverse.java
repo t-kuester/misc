@@ -1,18 +1,15 @@
 package de.tkuester.particles;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 import javax.swing.JFrame;
-
-import de.tkuester.particles.UniverseComponent.Camera;
 
 public class RunUniverse {
 
 	public static void main(String[] args) throws Exception {
 		
-		Universe universe = new TestUniverse();
-//		Universe universe = new Universe();
+		Universe universe = new Universe();
+//		universe = new TestUniverse();
 		universe.randomInit();
 
 		UniverseComponent component = new UniverseComponent(universe);
@@ -25,9 +22,9 @@ public class RunUniverse {
 		frame.setVisible(true);
 
 //		Random random = new Random();
-		component.camera.yaw      = 0;//random.nextInt(360);
-		component.camera.pitch    = 0;//random.nextInt(180) - 90;
-		component.camera.distance = 500;//Math.abs(random.nextGaussian() * 100);
+//		component.camera.yaw      = 0;//random.nextInt(360);
+//		component.camera.pitch    = 0;//random.nextInt(180) - 90;
+//		component.camera.distance = 500;//Math.abs(random.nextGaussian() * 100);
 		
 		int d = 2;
 		while (true) {
