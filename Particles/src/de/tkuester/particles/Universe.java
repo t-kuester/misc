@@ -33,7 +33,7 @@ public class Universe {
 			
 			p.size = Math.abs(random.nextGaussian() * sizes);
 			
-			particles.add(p);
+			this.particles.add(p);
 		}
 	}
 	
@@ -42,10 +42,10 @@ public class Universe {
 		Set<Particle> destroyed = new HashSet<>();
 		Set<Runnable> merger = new HashSet<>();
 		
-		for (int i = 0; i < particles.size(); i++) {
-			for (int k = i + 1; k < particles.size(); k++) {
-				Particle p1 = particles.get(i);
-				Particle p2 = particles.get(k);
+		for (int i = 0; i < this.particles.size(); i++) {
+			for (int k = i + 1; k < this.particles.size(); k++) {
+				Particle p1 = this.particles.get(i);
+				Particle p2 = this.particles.get(k);
 				
 				double dX = p1.posX - p2.posX;
 				double dY = p1.posY - p2.posY;
@@ -92,8 +92,8 @@ public class Universe {
 
 		merger.forEach(Runnable::run);
 		
-		particles.removeAll(destroyed);
-		particles.forEach(p -> {
+		this.particles.removeAll(destroyed);
+		this.particles.forEach(p -> {
 			p.posX += p.speedX;
 			p.posY += p.speedY;
 			p.posZ += p.speedZ;
