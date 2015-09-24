@@ -17,7 +17,7 @@ public class Universe {
 		double positions = 1000;
 		double speeds = 10;
 		double sizes = 5;
-		int number = 1000;
+		int number = 200;
 		
 		this.particles = new ArrayList<Particle>(number);
 		for (int i = 0; i < number; i++) {

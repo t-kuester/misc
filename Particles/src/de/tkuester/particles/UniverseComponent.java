@@ -2,7 +2,6 @@ package de.tkuester.particles;
 
 import java.awt.Graphics;
 import java.util.Locale;
-import java.util.Random;
 
 import javax.swing.JComponent;
 
@@ -31,21 +30,18 @@ public class UniverseComponent extends JComponent {
 		double pitch = Math.toRadians(camera.pitch);
 		
 		for (Particle p : this.universe.particles) {
-
-			double x = p.posX;
-			double y = p.posY;
-			double z = p.posZ;
-			double d = Math.sqrt(x*x + y*y + z*z);
 			
 			// determine horizontal angle and position
-			double a = Math.acos(x / Math.sqrt(x*x + y*y)) - yaw;;
-			double x2 = Math.cos(a) * d;
-			double y2 = Math.sin(a) * d;
+			double dxy = distance(p.posX, p.posY);
+			double a = angle(p.posX, p.posY, dxy);
+			double x2 = Math.cos(a - yaw) * dxy;
+			double y2 = Math.sin(a - yaw) * dxy;
 
 			// determine vertical angle and position
-			double b = Math.acos(x2 / Math.sqrt(x2*x2 + z*z)) - pitch;
-			double x3 = Math.cos(b) * d;
-			double z2 = Math.sin(b) * d;
+			double dxz = distance(x2, p.posZ);
+			double b = angle(x2, p.posZ, dxz);
+			double x3 = Math.cos(b - pitch) * dxz;
+			double z2 = Math.sin(b - pitch) * dxz;
 			
 			// distance to camera and positions on screen
 			double x4 = camera.distance - x3;
@@ -58,6 +54,14 @@ public class UniverseComponent extends JComponent {
 
 			// maybe show speed as some kind of arrow?
 		}
+	}
+	
+	double distance(double x, double y) {
+		return Math.sqrt(x*x + y*y);
+	}
+	
+	double angle(double x, double y, double d) {
+		return d == 0 ? 0 : Math.acos(x / d) * (y > 0 ? +1 : -1); 
 	}
 	
 	class Camera {

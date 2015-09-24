@@ -12,6 +12,7 @@ public class RunUniverse {
 	public static void main(String[] args) throws Exception {
 		
 		Universe universe = new TestUniverse();
+//		Universe universe = new Universe();
 		universe.randomInit();
 
 		UniverseComponent component = new UniverseComponent(universe);
@@ -20,30 +21,30 @@ public class RunUniverse {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().add(component);
 		frame.pack();
-		frame.setSize(800, 600);
+		frame.setSize(600, 600);
 		frame.setVisible(true);
 
-		Random random = new Random();
-
+//		Random random = new Random();
 		component.camera.yaw      = 0;//random.nextInt(360);
 		component.camera.pitch    = 0;//random.nextInt(180) - 90;
-		component.camera.distance = 0;//Math.abs(random.nextGaussian() * 100);
+		component.camera.distance = 500;//Math.abs(random.nextGaussian() * 100);
 		
-		int d = +1;
+		int d = 2;
 		while (true) {
 			
 			// testing
-			component.camera.yaw   += 1;
-//			component.camera.pitch += d;
-//			component.camera.distance += 1;//random.nextGaussian();
-			if (Math.abs(component.camera.pitch) > 90) {
-				d *= -1;
-			}
-			System.out.println(component.camera);
+//			component.camera.yaw   += d;//random.nextGaussian();
+//			component.camera.pitch += d;//random.nextGaussian();
+//			component.camera.distance += d;//random.nextGaussian();
+//			if (Math.abs(component.camera.pitch) > 90) {
+//				d *= -1;
+//			}
+//			System.out.println(component.camera);
 			
 			universe.update();
 			frame.repaint();
 			Thread.sleep(100);
+			
 		}
 		
 	}
@@ -53,7 +54,7 @@ public class RunUniverse {
 		@Override
 		public void randomInit() {
 			
-			int N = 5;
+			int N = 4;
 			double D = 100;
 			
 			// create an evenly spaced lattice of NxNxN particles
@@ -65,9 +66,9 @@ public class RunUniverse {
 					for (int k = 0; k < N; k++) {
 						Particle p = new Particle();
 						
-						p.posX = (i - N/2) * D;
-						p.posY = (j - N/2) * D;
-						p.posZ = (k - N/2) * D;
+						p.posX = (i - N/2.) * D;
+						p.posY = (j - N/2.) * D;
+						p.posZ = (k - N/2.) * D;
 						
 						this.particles.add(p);
 					}
