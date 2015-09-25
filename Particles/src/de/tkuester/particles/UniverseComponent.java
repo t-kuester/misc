@@ -1,5 +1,6 @@
 package de.tkuester.particles;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -48,6 +49,8 @@ public class UniverseComponent extends JComponent {
 		
 		final int W = this.getWidth();
 		final int H = this.getHeight();
+		g.setColor(Color.BLACK);
+		g.fillRect(0, 0, W, H);
 
 		double yaw   = Math.toRadians(camera.yaw);
 		double pitch = Math.toRadians(camera.pitch);
@@ -66,15 +69,25 @@ public class UniverseComponent extends JComponent {
 			double x3 = Math.cos(b - pitch) * dxz;
 			double z2 = Math.sin(b - pitch) * dxz;
 			
-			// distance to camera and positions on screen
+			// if particle is in front of camera
 			double x4 = camera.distance - x3;
 			if (x4 > 0) {
-				int horizontal = (int) ((1 + y2 / x4) * W/2); 
-				int vertical   = (int) ((1 + z2 / x4) * H/2);
+				// determine position on screen
+				int horz = (int) ((1 + y2 / x4) * W/2); 
+				int vert   = (int) ((1 + z2 / x4) * H/2);
 				
-				// TODO take size and distance into account
-				int s = 2;
-				g.drawOval(horizontal - s, vertical - s, 2*s, 2*s);
+				if (0 <= horz && horz < W && 0 <= vert && vert < H){
+					// determine apparent size and draw particle
+					double distance = Math.sqrt(x4*x4 + y2*y2 + z2*z2);
+					int s = Math.max((int) (p.size / (distance / 100)), 1);
+					
+					// use color to indicate either size or distance
+					float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
+					Color c = new Color(f, f, f);
+					g.setColor(c);
+					
+					g.fillOval(horz - s, vert - s, 2*s, 2*s);
+				}
 			}
 
 			// maybe show speed as some kind of arrow?
@@ -92,17 +105,18 @@ public class UniverseComponent extends JComponent {
 	
 	/**
 	 * Class for encapsulating the current orientation of the camera.
+	 * All angles are in degrees.
 	 * 
 	 * @author tkuester
 	 */
 	private class Camera {
 		double yaw = 0;
 		double pitch = 0;
-		double distance = 1000;
+		double distance = 10000;
 		
 		@Override
 		public String toString() {
-			return String.format(Locale.UK, "Camera(%.2f, %.2f, %.2f)", yaw, pitch, distance); 
+			return String.format(Locale.UK, "Camera: Yaw %.2f°, Pitch %.2f°, Distance %.2f", yaw, pitch, distance); 
 		}
 	}
 	
@@ -113,8 +127,8 @@ public class UniverseComponent extends JComponent {
 	 */
 	private class CameraControl extends MouseAdapter {
 
-		private int x;
-		private int y;
+		/** the last camera position */
+		private int x, y;
 		
 		@Override
 		public void mousePressed(MouseEvent e) {
@@ -129,9 +143,8 @@ public class UniverseComponent extends JComponent {
 			x = e.getX();
 			y = e.getY();
 			
-			Camera camera = UniverseComponent.this.camera;
-			camera.yaw += dx;
-			camera.pitch = Math.min(Math.max(camera.pitch + dy, -90), 90);
+			UniverseComponent.this.camera.yaw += dx;
+			UniverseComponent.this.camera.pitch += dy;
 		}
 		
 		@Override
@@ -139,7 +152,6 @@ public class UniverseComponent extends JComponent {
 			double amount = 1 + (e.getWheelRotation() * .1);
 			UniverseComponent.this.camera.distance *= amount;
 		}
-		
 	}
 
 }

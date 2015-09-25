@@ -6,20 +6,34 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * The "universe" containing the particles. It manages how the particles
+ * move in each step, attracting each other via "gravity" and merging into 
+ * larger bodies when being close enough to each other.
+ *
+ * @author tkuester
+ */
 public class Universe {
 
+	/** list of particles currently present in the universe */
 	List<Particle> particles;
 	
-	final double G = 10.0;
+	/** 'Gravitational constant'. Too low, and nothing happens; too 
+	 * high and after a very short contraction the universe explodes. */
+	final double G = .10;
 	
+	/**
+	 * Randomly initialize a number of particles in the universe.
+	 */
 	public void randomInit() {
 		Random random = new Random();
 		double positions = 1000;
 		double speeds = 10;
-		double sizes = 5;
-		int number = 200;
+		double sizes = 50;
+		int number = 100;
 		
 		this.particles = new ArrayList<Particle>(number);
+		// create and add particles with random position, speed, and size
 		for (int i = 0; i < number; i++) {
 			Particle p = new Particle();
 			
@@ -37,16 +51,24 @@ public class Universe {
 		}
 	}
 	
+	/**
+	 * Update speed and position of each particle in the universe after
+	 * another "time step" (or indeterminate length). Particles are
+	 * attracted to each other by gravity and will merge if close enough.
+	 */
 	public void update() {
-		
+		// the particles that were destroyed (absorbed) in this step
 		Set<Particle> destroyed = new HashSet<>();
+		// deferred tasks for merging particles
 		Set<Runnable> merger = new HashSet<>();
 		
+		// for each combination of pairs of particles...
 		for (int i = 0; i < this.particles.size(); i++) {
 			for (int k = i + 1; k < this.particles.size(); k++) {
 				Particle p1 = this.particles.get(i);
 				Particle p2 = this.particles.get(k);
 				
+				// ... get some basic metrics ...
 				double dX = p1.posX - p2.posX;
 				double dY = p1.posY - p2.posY;
 				double dZ = p1.posZ - p2.posZ;
@@ -55,8 +77,10 @@ public class Universe {
 				double m2 = Math.pow(p2.size, 3);
 				double m = m1 + m2;
 				
+				// ... and see whether the particles touch each other
 				if (d < p1.size + p2.size) {
 					
+					// if so, merge second into first, and destroy second
 					Runnable merge = () -> {
 						p1.posX = (p1.posX * m1 + p2.posX * m2) / m;
 						p1.posY = (p1.posY * m1 + p2.posY * m2) / m;
@@ -68,31 +92,34 @@ public class Universe {
 						
 						p1.size = Math.pow(m, 1/3.);
 					};
-					
 					merger.add(merge);
 					destroyed.add(p2);
 					
-				} else if (d > 0) {
-					
+				} else {
+					// otherwise, calculate gravitational force ...
 					double force = (m1 * m2 * G) / (d * d);
-					double accel1 = force / m1;
-					double accel2 = force / m2;
 					
+					// ...and accelerate the particles towards each other
+					double accel1 = force / m1;
 					p1.speedX -= accel1 * dX / d;
 					p1.speedY -= accel1 * dY / d;
 					p1.speedZ -= accel1 * dZ / d;
 					
+					double accel2 = force / m2;
 					p2.speedX += accel2 * dX / d;
 					p2.speedY += accel2 * dY / d;
 					p2.speedZ += accel2 * dZ / d;
-					
 				}
 			}
 		}
 
+		// execute all the "merger" tasks
 		merger.forEach(Runnable::run);
 		
+		// remove particles that were destroyed in this step
 		this.particles.removeAll(destroyed);
+		
+		// update position of remaining particles
 		this.particles.forEach(p -> {
 			p.posX += p.speedX;
 			p.posY += p.speedY;
