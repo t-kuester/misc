@@ -15,11 +15,23 @@ that.
 
 algorithms/
 -----------
-Some common algorithms; some really useful, like disjoint-sets, others that can
-also be found in the standard library. Mostly from some e-learning courses.
+Some common algorithms; some really useful, like disjoint-sets, and others that 
+can also be found in the standard library. Mostly from some e-learning courses.
 
-planner/
+stuff/
+------
+More random stuff. Nothing in this directory is any useful, but curious or
+interesting to program and to experiment with.
+
+Planner/
 --------
 A simple Python AI planner, again nothing serious, just for playing around with.
 Can solve some simple problems, but I never got around to implement any more
 elaborate planning algorithms.
+
+Particles/
+----------
+Particle/Gravity/Universe-Simulator in Java. Rather simple, can (more or less
+realistically) simulate a number of particles being pulled towards each other
+by "gravity". All this can be viewed with a camera that can be rotated freely
+around the scene, looking inwards.
