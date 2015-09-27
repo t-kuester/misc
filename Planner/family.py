@@ -26,7 +26,7 @@ class Person:
 		return self._name
 	
 
-# define shortcuts for core beliefs
+# define shortcuts for core beliefs, derived directly from objects
 IsPerson = lambda subj:      Belief("Person", subj)
 Parent   = lambda subj, obj: Belief("parents", obj, subj) # swap subj and obj for readability
 Name     = lambda subj, obj: Belief("name", subj, obj)
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 	homer     = Person("Homer Simpson", M, abe, mona)
 	herbert   = Person("Herbert Simpson", M, abe, mona)
 	jaqueline = Person("Jaqueline Bouvier", W)
-	marge     = Person("Marge Bouvier", W, jaqueline)
+	marge     = Person("Marge Simpson", W, jaqueline)
 	patty     = Person("Patty Bouvier", W, jaqueline)
 	selma     = Person("Selma Bouvier", W, jaqueline)
 	bart      = Person("Bart Simpson", M, homer, marge)
