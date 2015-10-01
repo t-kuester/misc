@@ -21,6 +21,10 @@ public class UniverseComponent extends JComponent {
 	
 	private static final long serialVersionUID = -3154952439452964085L;
 
+	/*
+	 * TODO show current camera position
+	 */
+	
 	/** the universe to draw */
 	final Universe universe;
 	

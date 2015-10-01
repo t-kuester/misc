@@ -20,17 +20,20 @@ public class Universe {
 	
 	/** 'Gravitational constant'. Too low, and nothing happens; too 
 	 * high and after a very short contraction the universe explodes. */
-	final double G = .10;
+	double G = .10;
+	
+	int step = 0;
 	
 	/**
 	 * Randomly initialize a number of particles in the universe.
+	 * 
+	 * @param number	number of particles to generate
 	 */
-	public void randomInit() {
+	public void randomInit(int number) {
 		Random random = new Random();
 		double positions = 1000;
 		double speeds = 10;
 		double sizes = 50;
-		int number = 100;
 		
 		this.particles = new ArrayList<Particle>(number);
 		// create and add particles with random position, speed, and size
@@ -49,6 +52,7 @@ public class Universe {
 			
 			this.particles.add(p);
 		}
+		this.step = 0;
 	}
 	
 	/**
@@ -125,6 +129,9 @@ public class Universe {
 			p.posY += p.speedY;
 			p.posZ += p.speedZ;
 		});
+		
+		// finally, update step
+		this.step++;
 	}
 	
 }

@@ -18,8 +18,9 @@ public class RunUniverse {
 	public static void main(String[] args) throws Exception {
 		
 		Universe universe = new Universe();
+		universe.randomInit(200);
 //		universe = new TestUniverse();
-		universe.randomInit();
+//		universe.randomInit(5);
 
 		UniverseComponent component = new UniverseComponent(universe);
 		
@@ -45,23 +46,20 @@ public class RunUniverse {
 	 */
 	static class TestUniverse extends Universe {
 
-		/** number of particles in each row, column, and layer */
-		final static int N = 4;
-		
 		/** spacing between particles */
 		final static double D = 100;
 		
 		@Override
-		public void randomInit() {
-			this.particles = new ArrayList<Particle>(N*N*N);
-			for (int i = 0; i < N; i++) {
-				for (int j = 0; j < N; j++) {
-					for (int k = 0; k < N; k++) {
+		public void randomInit(int n) {
+			this.particles = new ArrayList<Particle>(n*n*n);
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					for (int k = 0; k < n; k++) {
 						Particle p = new Particle();
 						
-						p.posX = (i - N/2.) * D;
-						p.posY = (j - N/2.) * D;
-						p.posZ = (k - N/2.) * D;
+						p.posX = (i - n/2.) * D;
+						p.posY = (j - n/2.) * D;
+						p.posZ = (k - n/2.) * D;
 						p.size = 10;
 						
 						this.particles.add(p);
