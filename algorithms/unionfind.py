@@ -37,3 +37,12 @@ class UnionFind:
 		lx, ly = self.find(x), self.find(y)
 		if lx != ly:
 			self.leaders[lx] = ly
+
+	def get_groups(self):
+		"""Get the disjoint sets, or groups, that were identified .
+		"""
+		groups = defaultdict(set)
+		for x in self.leaders:
+			groups[self.find(x)].add(x)
+		return groups
+	
