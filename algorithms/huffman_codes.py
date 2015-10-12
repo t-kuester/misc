@@ -1,7 +1,15 @@
 """Create letter-frequency-based 'encoding' using Huffman codes.
 """
 
+from __future__ import division
+from collections import Counter
 from heapq import heappush, heappop, heapify
+
+def get_probabilities(text):
+	"""Get character probabilities from text."""
+	n = len(text)
+	counts = Counter(text)
+	return {c: counts[c] / n for c in text}
 
 def huffman(probabilities):
 	"""Generate variable-length Huffman encoding for symbols in alphabet with 
@@ -32,6 +40,20 @@ def to_code(d, tree, prefix=""):
 	else:
 		d[tree] = prefix
 
+def encode(dictionary, text):
+	"""Turn the text into huffman encoded binary string."""
+	return "".join(dictionary[c] for c in text)
+	
+def decode(dictionary, binary):
+	"""Turn the binary string back into readable text."""
+	inverse_dict = {v: k for k, v in dictionary.items()}
+	res = ""
+	while binary:
+		k = next(k for k in inverse_dict if binary.startswith(k))
+		res += inverse_dict[k]
+		binary = binary[len(k):]
+	return res
+
 def calc_avg_len(codes, probabilities):
 	"""Calculate average length of codes, weighted by probabilities."""
 	total = sum(probabilities.values())
@@ -49,3 +71,9 @@ if __name__ == "__main__":
 	for c in sorted(codes, key=lambda x: probabilities[x], reverse=True):
 		print("%s %.2f %s" % (c, probabilities[c], codes[c]))
 	print(calc_avg_len(codes, probabilities))
+
+	# test encoding and decoding
+	text = "Hello, World! Just some text for testing encoding and decoding."
+	codes = huffman(get_probabilities(text))
+	print(text == decode(codes, encode(codes, text)))
+	
