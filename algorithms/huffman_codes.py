@@ -4,7 +4,11 @@
 from __future__ import division
 from collections import Counter
 from heapq import heappush, heappop, heapify
-
+try:
+	from bitarray import bitarray
+except ImportError:
+	pass
+	
 def get_probabilities(text):
 	"""Get character probabilities from text."""
 	n = len(text)
@@ -42,17 +46,27 @@ def to_code(d, tree, prefix=""):
 
 def encode(dictionary, text):
 	"""Turn the text into huffman encoded binary string."""
-	return "".join(dictionary[c] for c in text)
+	try:
+		d = {k: bitarray(v) for k, v in dictionary.items()}
+		a = bitarray()
+		a.encode(d, text)
+		return a
+	except NameError:
+		return "".join(dictionary[c] for c in text)		
 	
 def decode(dictionary, binary):
 	"""Turn the binary string back into readable text."""
-	inverse_dict = {v: k for k, v in dictionary.items()}
-	res = ""
-	while binary:
-		k = next(k for k in inverse_dict if binary.startswith(k))
-		res += inverse_dict[k]
-		binary = binary[len(k):]
-	return res
+	try:
+		d = {k: bitarray(v) for k, v in dictionary.items()}
+		return ''.join(bitarray(binary).decode(d))
+	except NameError:
+		inverse_dict = {v: k for k, v in dictionary.items()}
+		res = ""
+		while binary:
+			k = next(k for k in inverse_dict if binary.startswith(k))
+			res += inverse_dict[k]
+			binary = binary[len(k):]
+		return res
 
 def calc_avg_len(codes, probabilities):
 	"""Calculate average length of codes, weighted by probabilities."""
@@ -75,5 +89,8 @@ if __name__ == "__main__":
 	# test encoding and decoding
 	text = "Hello, World! Just some text for testing encoding and decoding."
 	codes = huffman(get_probabilities(text))
+	print(codes)
+	print(encode(codes, text))
+	print(decode(codes, encode(codes, text)))
 	print(text == decode(codes, encode(codes, text)))
 	
