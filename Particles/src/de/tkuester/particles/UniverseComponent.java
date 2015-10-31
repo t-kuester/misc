@@ -29,9 +29,11 @@ public class UniverseComponent extends JComponent {
 	/*
 	 * TODO 
 	 * show coordinate axes (optional)
-	 * show XYZ lines for each particle (optional)
 	 * show particle speed as vector (optional)
 	 */
+	
+	/** whether to draw orthogonal lines on XY plane and in Z direction */
+	public static boolean drawOrthogonals = true;
 	
 	/** the universe to draw */
 	private final Universe universe;
@@ -76,6 +78,17 @@ public class UniverseComponent extends JComponent {
 			if (norm.x > 0) {
 				// determine position on screen
 				Point p = projection(norm, W, H);
+				
+				// draw lines from (0,0,0) to (x,y,0) and further to (x,y,z)
+				if (drawOrthogonals) {
+					Point3D posXY = new Point3D(particle.pos.x, particle.pos.y, 0);
+					Point3D normXY = normalize(posXY, yaw, pitch, camera.distance);
+					Point p2 = projection(normXY, W, H);
+
+					g.setColor(Color.GRAY);
+					g.drawLine(W/2, H/2, p2.x, p2.y);
+					g.drawLine(p2.x, p2.y, p.x, p.y);
+				}
 				
 				if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
 					// determine apparent size and draw particle
@@ -173,8 +186,8 @@ public class UniverseComponent extends JComponent {
 			x = e.getX();
 			y = e.getY();
 			
-			UniverseComponent.this.camera.yaw += dx;
-			UniverseComponent.this.camera.pitch += dy;
+			UniverseComponent.this.camera.yaw -= dx;
+			UniverseComponent.this.camera.pitch -= dy;
 			UniverseComponent.this.repaint();
 		}
 		
