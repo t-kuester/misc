@@ -40,13 +40,13 @@ public class Universe {
 		for (int i = 0; i < number; i++) {
 			Particle p = new Particle();
 			
-			p.posX = random.nextGaussian() * positions;
-			p.posY = random.nextGaussian() * positions;
-			p.posZ = random.nextGaussian() * positions;
+			p.pos.x = random.nextGaussian() * positions;
+			p.pos.y = random.nextGaussian() * positions;
+			p.pos.z = random.nextGaussian() * positions;
 			
-			p.speedX = random.nextGaussian() * speeds;
-			p.speedY = random.nextGaussian() * speeds;
-			p.speedZ = random.nextGaussian() * speeds;
+			p.speed.x = random.nextGaussian() * speeds;
+			p.speed.y = random.nextGaussian() * speeds;
+			p.speed.z = random.nextGaussian() * speeds;
 			
 			p.size = Math.abs(random.nextGaussian() * sizes);
 			
@@ -73,9 +73,9 @@ public class Universe {
 				Particle p2 = this.particles.get(k);
 				
 				// ... get some basic metrics ...
-				double dX = p1.posX - p2.posX;
-				double dY = p1.posY - p2.posY;
-				double dZ = p1.posZ - p2.posZ;
+				double dX = p1.pos.x - p2.pos.x;
+				double dY = p1.pos.y - p2.pos.y;
+				double dZ = p1.pos.z - p2.pos.z;
 				double d = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
 				double m1 = Math.pow(p1.size, 3);
 				double m2 = Math.pow(p2.size, 3);
@@ -86,13 +86,13 @@ public class Universe {
 					
 					// if so, merge second into first, and destroy second
 					Runnable merge = () -> {
-						p1.posX = (p1.posX * m1 + p2.posX * m2) / m;
-						p1.posY = (p1.posY * m1 + p2.posY * m2) / m;
-						p1.posZ = (p1.posZ * m1 + p2.posZ * m2) / m;
+						p1.pos.x = (p1.pos.x * m1 + p2.pos.x * m2) / m;
+						p1.pos.y = (p1.pos.y * m1 + p2.pos.y * m2) / m;
+						p1.pos.z = (p1.pos.z * m1 + p2.pos.z * m2) / m;
 						
-						p1.speedX = (p1.speedX * m1 + p2.speedX * m2) / m;
-						p1.speedY = (p1.speedY * m1 + p2.speedY * m2) / m;
-						p1.speedZ = (p1.speedZ * m1 + p2.speedZ * m2) / m;
+						p1.speed.x = (p1.speed.x * m1 + p2.speed.x * m2) / m;
+						p1.speed.y = (p1.speed.y * m1 + p2.speed.y * m2) / m;
+						p1.speed.z = (p1.speed.z * m1 + p2.speed.z * m2) / m;
 						
 						p1.size = Math.pow(m, 1/3.);
 					};
@@ -105,14 +105,14 @@ public class Universe {
 					
 					// ...and accelerate the particles towards each other
 					double accel1 = force / m1;
-					p1.speedX -= accel1 * dX / d;
-					p1.speedY -= accel1 * dY / d;
-					p1.speedZ -= accel1 * dZ / d;
+					p1.speed.x -= accel1 * dX / d;
+					p1.speed.y -= accel1 * dY / d;
+					p1.speed.z -= accel1 * dZ / d;
 					
 					double accel2 = force / m2;
-					p2.speedX += accel2 * dX / d;
-					p2.speedY += accel2 * dY / d;
-					p2.speedZ += accel2 * dZ / d;
+					p2.speed.x += accel2 * dX / d;
+					p2.speed.y += accel2 * dY / d;
+					p2.speed.z += accel2 * dZ / d;
 				}
 			}
 		}
@@ -125,9 +125,9 @@ public class Universe {
 		
 		// update position of remaining particles
 		this.particles.forEach(p -> {
-			p.posX += p.speedX;
-			p.posY += p.speedY;
-			p.posZ += p.speedZ;
+			p.pos.x += p.speed.x;
+			p.pos.y += p.speed.y;
+			p.pos.z += p.speed.z;
 		});
 		
 		// finally, update step

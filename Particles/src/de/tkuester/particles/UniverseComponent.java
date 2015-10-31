@@ -65,14 +65,14 @@ public class UniverseComponent extends JComponent {
 		for (Particle p : this.universe.particles) {
 			
 			// determine horizontal angle and position
-			double dxy = distance(p.posX, p.posY);
-			double a = angle(p.posX, p.posY, dxy);
+			double dxy = distance(p.pos.x, p.pos.y);
+			double a = angle(p.pos.x, p.pos.y, dxy);
 			double x2 = Math.cos(a - yaw) * dxy;
 			double y2 = Math.sin(a - yaw) * dxy;
 
 			// determine vertical angle and position
-			double dxz = distance(x2, p.posZ);
-			double b = angle(x2, p.posZ, dxz);
+			double dxz = distance(x2, p.pos.z);
+			double b = angle(x2, p.pos.z, dxz);
 			double x3 = Math.cos(b - pitch) * dxz;
 			double z2 = Math.sin(b - pitch) * dxz;
 			

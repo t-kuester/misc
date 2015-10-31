@@ -75,14 +75,14 @@ public class UniverseEvolver {
 		for (Particle p : universe.particles) {
 			if (random.nextBoolean()) {
 				if (random.nextBoolean()) {
-					p.posX += random.nextGaussian();
-					p.posY += random.nextGaussian();
-					p.posZ += random.nextGaussian();
+					p.pos.x += random.nextGaussian();
+					p.pos.y += random.nextGaussian();
+					p.pos.z += random.nextGaussian();
 				}
 				if (random.nextBoolean()) {
-					p.speedX += random.nextGaussian();
-					p.speedY += random.nextGaussian();
-					p.speedZ += random.nextGaussian();
+					p.speed.x += random.nextGaussian();
+					p.speed.y += random.nextGaussian();
+					p.speed.z += random.nextGaussian();
 				}
 				if (random.nextBoolean()) {
 					p.size += random.nextGaussian();
@@ -137,9 +137,9 @@ public class UniverseEvolver {
 	 * @return		distance between the two
 	 */
 	public double distance(Particle p, Particle q) {
-		return Math.sqrt(Math.pow(p.posX - q.posX, 2)
-				       + Math.pow(p.posY - q.posY, 2)
-				       + Math.pow(p.posZ - q.posZ, 2));
+		return Math.sqrt(Math.pow(p.pos.x - q.pos.x, 2)
+				       + Math.pow(p.pos.y - q.pos.y, 2)
+				       + Math.pow(p.pos.z - q.pos.z, 2));
 	}
 
 	/**
@@ -156,13 +156,13 @@ public class UniverseEvolver {
 		for (Particle p : original.particles) {
 			Particle q = new Particle();
 			
-			q.posX = p.posX;
-			q.posY = p.posY;
-			q.posZ = p.posZ;
+			q.pos.x = p.pos.x;
+			q.pos.y = p.pos.y;
+			q.pos.z = p.pos.z;
 			
-			q.speedX = p.speedX;
-			q.speedY = p.speedY;
-			q.speedZ = p.speedZ;
+			q.speed.x = p.speed.x;
+			q.speed.y = p.speed.y;
+			q.speed.z = p.speed.z;
 			
 			q.size = p.size;
 			

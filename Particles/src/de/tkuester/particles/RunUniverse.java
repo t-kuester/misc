@@ -74,9 +74,9 @@ public class RunUniverse {
 					for (int k = 0; k < n; k++) {
 						Particle p = new Particle();
 						
-						p.posX = (i - n/2.) * D;
-						p.posY = (j - n/2.) * D;
-						p.posZ = (k - n/2.) * D;
+						p.pos.x = (i - n/2.) * D;
+						p.pos.y = (j - n/2.) * D;
+						p.pos.z = (k - n/2.) * D;
 						p.size = 10;
 						
 						this.particles.add(p);
