@@ -21,7 +21,7 @@ public class Benchmark {
 	 * 100 particles, 1000 iterations, no merging
 	 * wrapper: 4000ms, 200 points
 	 * pos-update: 4100ms, 100k points
-	 * spd-update: 5300ms, 30M points
+	 * spd-update: 5600ms, 30M points
 	 */
 	public static void main(String[] args) {
 		runBenchmark(100, 1000, false);

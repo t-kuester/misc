@@ -46,8 +46,8 @@ public class Point3D {
 		return new Point3D(this.x + other.x, this.y + other.y, this.z + other.z);
 	}
 	
-	public Point3D diff(Point3D other) {
-		return new Point3D(other.x - this.x, other.y - this.y, other.z - this.z);
+	public Point3D sub(Point3D other) {
+		return new Point3D(this.x - other.x, this.y - other.y, this.z - other.z);
 	}
 	
 	public Point3D mult(double factor) {

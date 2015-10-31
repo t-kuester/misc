@@ -81,7 +81,7 @@ public class Universe {
 				double dY = p1.pos.y - p2.pos.y;
 				double dZ = p1.pos.z - p2.pos.z;
 				double d = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
-//				Point3D diff = p1.pos.diff(p2.pos);
+//				Point3D diff = p1.pos.sub(p2.pos);
 //				double d = diff.absolute();
 				double m1 = p1.getMass();
 				double m2 = p2.getMass();
@@ -114,11 +114,11 @@ public class Universe {
 //					Point3D norm = diff.norm();
 					
 					// ...and accelerate the particles towards each other
-					double accel1 = force / m1;
-					p1.speed.x -= accel1 * dX / d;
-					p1.speed.y -= accel1 * dY / d;
-					p1.speed.z -= accel1 * dZ / d;
-//					p1.speed = p1.speed.add(norm.mult(accel1 * -1));
+					double accel1 = -force / m1;
+					p1.speed.x += accel1 * dX / d;
+					p1.speed.y += accel1 * dY / d;
+					p1.speed.z += accel1 * dZ / d;
+//					p1.speed = p1.speed.add(norm.mult(accel1));
 					
 					double accel2 = force / m2;
 					p2.speed.x += accel2 * dX / d;
