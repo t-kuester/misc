@@ -1,7 +1,5 @@
 package de.tkuester.particles;
 
-import java.util.ArrayList;
-
 import javax.swing.JFrame;
 
 /**
@@ -17,10 +15,9 @@ public class RunUniverse {
 		
 		Universe universe = new Universe();
 		universe.initialize(200);
-//		universe = new TestUniverse();
-//		universe.randomInit(5);
+//		addLattice(universe, 100, 5);
 
-		runUniverseFrame(universe, 600, 100);
+		runUniverseFrame(universe, 600, 100, false);
 	}
 	
 	/**
@@ -32,8 +29,9 @@ public class RunUniverse {
 	 * @param universe		the Universe to simulate
 	 * @param size			size of the frame (both width and height)
 	 * @param sleep			sleep time between steps
+	 * @param update		whether to update the unvierse (false for testing just the camera)
 	 */
-	public static void runUniverseFrame(Universe universe, int size, int sleep) {
+	public static void runUniverseFrame(Universe universe, int size, int sleep, boolean update) {
 
 		// create frame with UniverseComponent
 		JFrame frame = new JFrame("Universe");
@@ -44,7 +42,7 @@ public class RunUniverse {
 		frame.setVisible(true);
 
 		// update universe state and repaint frame
-		while (true) {
+		while (update) {
 			universe.update();
 			frame.repaint();
 			try {
@@ -56,39 +54,27 @@ public class RunUniverse {
 	}
 	
 	/**
-	 * Test-"Universe", creating an evenly spaced lattice of NxNxN particles 
-	 * for testing the drawing component and camera movement.
+	 * Create particles laid out in a regular lattice in the given universe.
 	 * 
-	 * @author tkuester
+	 * @param universe		some universe (existing particles will be removed)
+	 * @param spacing		spacing between particles
+	 * @param side			number of particles in each dimension (total: side^3)
 	 */
-	static class TestUniverse extends Universe {
-
-		/** spacing between particles */
-		final static double D = 100;
-		
-		@Override
-		public void initialize(int n) {
-			this.particles = new ArrayList<Particle>(n*n*n);
-			for (int i = 0; i < n; i++) {
-				for (int j = 0; j < n; j++) {
-					for (int k = 0; k < n; k++) {
-						Particle p = new Particle();
-						
-						p.pos.x = (i - n/2.) * D;
-						p.pos.y = (j - n/2.) * D;
-						p.pos.z = (k - n/2.) * D;
-						p.size = 10;
-						
-						this.particles.add(p);
-					}
+	public static void addLattice(Universe universe, int spacing, int side) {
+		universe.particles.clear();
+		for (int i = 0; i < side; i++) {
+			for (int j = 0; j < side; j++) {
+				for (int k = 0; k < side; k++) {
+					Particle p = new Particle();
+					
+					p.pos.x = (i - side/2.) * spacing;
+					p.pos.y = (j - side/2.) * spacing;
+					p.pos.z = (k - side/2.) * spacing;
+					p.size = 10;
+					
+					universe.particles.add(p);
 				}
 			}
 		}
-		
-		@Override
-		public void update() {
-			// do nothing
-		}
 	}
-	
 }

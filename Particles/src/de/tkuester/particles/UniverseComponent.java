@@ -145,6 +145,7 @@ public class UniverseComponent extends JComponent {
 		public void mousePressed(MouseEvent e) {
 			this.x = e.getX();
 			this.y = e.getY();
+//			UniverseComponent.this.repaint();
 		}
 		
 		@Override
@@ -156,12 +157,14 @@ public class UniverseComponent extends JComponent {
 			
 			UniverseComponent.this.camera.yaw += dx;
 			UniverseComponent.this.camera.pitch += dy;
+			UniverseComponent.this.repaint();
 		}
 		
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			double amount = 1 + (e.getWheelRotation() * .1);
 			UniverseComponent.this.camera.distance *= amount;
+			UniverseComponent.this.repaint();
 		}
 	}
 

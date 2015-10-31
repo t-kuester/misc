@@ -23,7 +23,7 @@ public class UniverseEvolver {
 		Universe universe = evolver.evolveUniverse(2, 100, 100_000);
 		
 		// run the resulting universe
-		RunUniverse.runUniverseFrame(universe, 600, 10);
+		RunUniverse.runUniverseFrame(universe, 600, 10, true);
 	}
 	
 	/**
@@ -152,7 +152,6 @@ public class UniverseEvolver {
 		Universe copy = new Universe();
 		copy.G = original.G;
 		
-		copy.particles = new ArrayList<Particle>();
 		for (Particle p : original.particles) {
 			Particle q = new Particle();
 			

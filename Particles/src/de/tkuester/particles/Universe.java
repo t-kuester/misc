@@ -16,7 +16,7 @@ import java.util.Set;
 public class Universe {
 
 	/** list of particles currently present in the universe */
-	List<Particle> particles;
+	final List<Particle> particles = new ArrayList<>();
 	
 	/** 'Gravitational constant'. Too low, and nothing happens; too 
 	 * high and after a very short contraction the universe explodes. */
@@ -39,7 +39,7 @@ public class Universe {
 		double speeds = 10;
 		double sizes = 50;
 		
-		this.particles = new ArrayList<Particle>(number);
+		this.particles.clear();;
 		// create and add particles with random position, speed, and size
 		for (int i = 0; i < number; i++) {
 			Particle p = new Particle();
