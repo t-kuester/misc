@@ -2,6 +2,9 @@ package de.tkuester.particles;
 
 import javax.swing.JFrame;
 
+import de.tkuester.particles.model.Particle;
+import de.tkuester.particles.model.Universe;
+
 /**
  * Class for running/testing the universe. This just creates a new universe 
  * and a component for displaying it, embeds it into a plain frame, and
@@ -16,8 +19,9 @@ public class RunUniverse {
 		Universe universe = new Universe();
 		universe.initialize(200);
 //		addLattice(universe, 100, 5);
+//		universe.merging = false;
 
-		runUniverseFrame(universe, 600, 100, false);
+		runUniverseFrame(universe, 600, 100, true);
 	}
 	
 	/**
@@ -29,7 +33,7 @@ public class RunUniverse {
 	 * @param universe		the Universe to simulate
 	 * @param size			size of the frame (both width and height)
 	 * @param sleep			sleep time between steps
-	 * @param update		whether to update the unvierse (false for testing just the camera)
+	 * @param update		whether to update the universe (false for testing just the camera)
 	 */
 	public static void runUniverseFrame(Universe universe, int size, int sleep, boolean update) {
 

@@ -1,5 +1,8 @@
 package de.tkuester.particles;
 
+import de.tkuester.particles.model.Point3D;
+import de.tkuester.particles.model.Universe;
+
 /**
  * Class for doing performance benchmarks.
  *
@@ -24,6 +27,15 @@ public class Benchmark {
 		runBenchmark(100, 1000, false);
 	}
 	
+	/**
+	 * Run benchmark with given number of particles and iterations.
+	 * Keeps track of some metrics and prints them to console.
+	 * 
+	 * @param particles		number of particles
+	 * @param iterations	number of iterations
+	 * @param merging		whether to merge particles
+	 * @return				milliseconds from start to end
+	 */
 	private static long runBenchmark(int particles, int iterations, boolean merging) {
 		Universe universe = new Universe();
 		universe.initialize(particles);

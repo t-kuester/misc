@@ -1,7 +1,9 @@
 package de.tkuester.particles;
 
-import java.util.ArrayList;
 import java.util.Random;
+
+import de.tkuester.particles.model.Particle;
+import de.tkuester.particles.model.Universe;
 
 /**
  * This class can be used for "evolving" a universe that remains relatively 
@@ -113,11 +115,11 @@ public class UniverseEvolver {
 		Particle p = universe.particles.get(0);
 		Particle q = universe.particles.get(1);
 		
-		double distance = distance(p, q);
+		double distance = p.pos.distance(q.pos);
 		
 		while (true) {
 			universe.update();
-			double newDistance = distance(p, q);
+			double newDistance = p.pos.distance(q.pos);
 			
 			if (newDistance < distance / 2 || newDistance > distance * 2) {
 				break;
@@ -129,19 +131,6 @@ public class UniverseEvolver {
 		return universe.step;
 	}
 	
-	/**
-	 * Determine distance between two particles.
-	 * 
-	 * @param p		first particle
-	 * @param q		second particle
-	 * @return		distance between the two
-	 */
-	public double distance(Particle p, Particle q) {
-		return Math.sqrt(Math.pow(p.pos.x - q.pos.x, 2)
-				       + Math.pow(p.pos.y - q.pos.y, 2)
-				       + Math.pow(p.pos.z - q.pos.z, 2));
-	}
-
 	/**
 	 * Create a deep-copy of the universe and all its particles.
 	 * 

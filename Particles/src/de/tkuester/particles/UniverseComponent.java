@@ -9,6 +9,9 @@ import java.util.Locale;
 
 import javax.swing.JComponent;
 
+import de.tkuester.particles.model.Particle;
+import de.tkuester.particles.model.Universe;
+
 /**
  * Component for displaying a universe of particles. The particles are shown
  * in a more or less correct three dimensional perspective. The camera is

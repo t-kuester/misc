@@ -1,4 +1,4 @@
-package de.tkuester.particles;
+package de.tkuester.particles.model;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,17 +16,17 @@ import java.util.Set;
 public class Universe {
 
 	/** list of particles currently present in the universe */
-	final List<Particle> particles = new ArrayList<>();
+	public final List<Particle> particles = new ArrayList<>();
 	
 	/** 'Gravitational constant'. Too low, and nothing happens; too 
 	 * high and after a very short contraction the universe explodes. */
-	double G = .10;
+	public double G = .10;
 	
 	/** the current step in the simulation, just for tracking */
-	int step = 0;
+	public int step = 0;
 	
 	/** whether to merge very close particles */
-	boolean merging = true;
+	public boolean merging = true;
 	
 	/**
 	 * Randomly initialize a number of particles in the universe.
