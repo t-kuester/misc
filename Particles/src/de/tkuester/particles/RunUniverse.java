@@ -18,10 +18,10 @@ public class RunUniverse {
 		
 		Universe universe = new Universe();
 		universe.initialize(200);
-//		addLattice(universe, 100, 5);
+		addLattice(universe, 100, 5);
 //		universe.merging = false;
 
-		runUniverseFrame(universe, 600, 100, true);
+		runUniverseFrame(universe, 600, 100, false);
 	}
 	
 	/**

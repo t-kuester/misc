@@ -2,6 +2,7 @@ package de.tkuester.particles;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -10,6 +11,7 @@ import java.util.Locale;
 import javax.swing.JComponent;
 
 import de.tkuester.particles.model.Particle;
+import de.tkuester.particles.model.Point3D;
 import de.tkuester.particles.model.Universe;
 
 /**
@@ -65,38 +67,27 @@ public class UniverseComponent extends JComponent {
 		double yaw   = Math.toRadians(camera.yaw);
 		double pitch = Math.toRadians(camera.pitch);
 		
-		for (Particle p : this.universe.particles) {
+		for (Particle particle : this.universe.particles) {
 			
-			// determine horizontal angle and position
-			double dxy = distance(p.pos.x, p.pos.y);
-			double a = angle(p.pos.x, p.pos.y, dxy);
-			double x2 = Math.cos(a - yaw) * dxy;
-			double y2 = Math.sin(a - yaw) * dxy;
-
-			// determine vertical angle and position
-			double dxz = distance(x2, p.pos.z);
-			double b = angle(x2, p.pos.z, dxz);
-			double x3 = Math.cos(b - pitch) * dxz;
-			double z2 = Math.sin(b - pitch) * dxz;
+			// normalize particle's position w.r.t. camera
+			Point3D norm = normalize(particle.pos, yaw, pitch, camera.distance);
 			
 			// if particle is in front of camera
-			double x4 = camera.distance - x3;
-			if (x4 > 0) {
+			if (norm.x > 0) {
 				// determine position on screen
-				int horz = (int) ((1 + y2 / x4) * W/2); 
-				int vert   = (int) ((1 + z2 / x4) * H/2);
+				Point p = projection(norm, W, H);
 				
-				if (0 <= horz && horz < W && 0 <= vert && vert < H) {
+				if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
 					// determine apparent size and draw particle
-					double distance = Math.sqrt(x4*x4 + y2*y2 + z2*z2);
-					int s = Math.max((int) (p.size / (distance / 100)), 1);
+					double distance = norm.absolute();
+					int s = Math.max((int) (particle.size / (distance / 100)), 1);
 					
 					// use color to indicate either size or distance
 					float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
 					Color c = new Color(f, f, f);
 					g.setColor(c);
 					
-					g.fillOval(horz - s, vert - s, 2*s, 2*s);
+					g.fillOval(p.x - s, p.y - s, 2*s, 2*s);
 				}
 			}
 		}
@@ -104,6 +95,31 @@ public class UniverseComponent extends JComponent {
 		g.setColor(Color.WHITE);
 		g.drawString(this.camera.toString(), 10, 10);
 		
+	}
+	
+	private Point3D normalize(Point3D p, double yaw, double pitch, double distance) {
+		// determine horizontal angle and position
+		double dxy = distance(p.x, p.y);
+		double a = angle(p.x, p.y, dxy);
+		double x2 = Math.cos(a - yaw) * dxy;
+		double y2 = Math.sin(a - yaw) * dxy;
+
+		// determine vertical angle and position
+		double dxz = distance(x2, p.z);
+		double b = angle(x2, p.z, dxz);
+		double x3 = Math.cos(b - pitch) * dxz;
+		double z2 = Math.sin(b - pitch) * dxz;
+		
+		// if particle is in front of camera
+		double x4 = camera.distance - x3;
+
+		return new Point3D(x4, y2, z2);
+	}
+	
+	private Point projection(Point3D p, int width, int height) {
+		int horz = (int) ((1 + p.y / p.x) * width/2); 
+		int vert = (int) ((1 + p.z / p.x) * height/2);
+		return new Point(horz, vert);
 	}
 	
 	private double distance(double x, double y) {
@@ -128,7 +144,7 @@ public class UniverseComponent extends JComponent {
 		
 		@Override
 		public String toString() {
-			return String.format(Locale.UK, 
+			return String.format(Locale.ENGLISH, 
 					"Camera: Yaw %.2f°, Pitch %.2f°, Distance %.2f", 
 					yaw, pitch, distance); 
 		}
@@ -148,7 +164,6 @@ public class UniverseComponent extends JComponent {
 		public void mousePressed(MouseEvent e) {
 			this.x = e.getX();
 			this.y = e.getY();
-//			UniverseComponent.this.repaint();
 		}
 		
 		@Override
