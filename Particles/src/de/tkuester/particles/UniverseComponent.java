@@ -23,7 +23,6 @@ public class UniverseComponent extends JComponent {
 
 	/*
 	 * TODO 
-	 * show current camera position
 	 * show coordinate axes (optional)
 	 * show XYZ lines for each particle (optional)
 	 * show particle speed as vector (optional)
@@ -98,6 +97,10 @@ public class UniverseComponent extends JComponent {
 				}
 			}
 		}
+		// show camera position
+		g.setColor(Color.WHITE);
+		g.drawString(this.camera.toString(), 10, 10);
+		
 	}
 	
 	private double distance(double x, double y) {
