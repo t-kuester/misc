@@ -9,8 +9,6 @@ import javax.swing.JFrame;
  * and a component for displaying it, embeds it into a plain frame, and
  * advances the universe step by step in an infinite loop.
  * 
- * TODO user proper Swing threading for launching and running. 
- *
  * @author tkuester
  */
 public class RunUniverse {
@@ -18,23 +16,42 @@ public class RunUniverse {
 	public static void main(String[] args) throws Exception {
 		
 		Universe universe = new Universe();
-		universe.randomInit(200);
+		universe.initialize(200);
 //		universe = new TestUniverse();
 //		universe.randomInit(5);
 
-		UniverseComponent component = new UniverseComponent(universe);
-		
+		runUniverseFrame(universe, 600, 100);
+	}
+	
+	/**
+	 * Create a Frame for running and showing the Universe. The universe is
+	 * advanced in regular intervals and the frame is updated accordingly.
+	 * 
+	 * TODO user proper Swing threading
+	 * 
+	 * @param universe		the Universe to simulate
+	 * @param size			size of the frame (both width and height)
+	 * @param sleep			sleep time between steps
+	 */
+	public static void runUniverseFrame(Universe universe, int size, int sleep) {
+
+		// create frame with UniverseComponent
 		JFrame frame = new JFrame("Universe");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().add(component);
+		frame.getContentPane().add(new UniverseComponent(universe));
 		frame.pack();
-		frame.setSize(600, 600);
+		frame.setSize(size, size);
 		frame.setVisible(true);
 
+		// update universe state and repaint frame
 		while (true) {
 			universe.update();
 			frame.repaint();
-			Thread.sleep(100);
+			try {
+				Thread.sleep(sleep);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -50,7 +67,7 @@ public class RunUniverse {
 		final static double D = 100;
 		
 		@Override
-		public void randomInit(int n) {
+		public void initialize(int n) {
 			this.particles = new ArrayList<Particle>(n*n*n);
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < n; j++) {

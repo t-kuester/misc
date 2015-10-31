@@ -29,7 +29,7 @@ public class Universe {
 	 * 
 	 * @param number	number of particles to generate
 	 */
-	public void randomInit(int number) {
+	public void initialize(int number) {
 		Random random = new Random();
 		double positions = 1000;
 		double speeds = 10;

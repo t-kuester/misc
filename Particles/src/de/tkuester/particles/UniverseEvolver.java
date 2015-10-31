@@ -3,47 +3,46 @@ package de.tkuester.particles;
 import java.util.ArrayList;
 import java.util.Random;
 
-import javax.swing.JFrame;
-
+/**
+ * This class can be used for "evolving" a universe that remains relatively 
+ * stable for some time. Starting with some random universe, it is repeatedly
+ * copied, mutated, and simulated, and the best one is kept for the next 
+ * iteration until a given number of turns have passed or the quality somewhat
+ * converges, using a simple form of evolutionary algorithm.
+ *
+ * @author tkuester
+ */
 public class UniverseEvolver {
 
+	/** random number generator for random mutations */
 	private static Random random = new Random();
 	
 	public static void main(String[] args) throws Exception {
-		
+		// create universe using universe evolver
 		UniverseEvolver evolver = new UniverseEvolver();
+		Universe universe = evolver.evolveUniverse(2, 100, 100_000);
 		
-		Universe universe = evolver.evolveUniverse(2);
-		
-		// TODO move this to a method to eliminate code duplication
-		
-		UniverseComponent component = new UniverseComponent(universe);
-		
-		JFrame frame = new JFrame("Universe");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().add(component);
-		frame.pack();
-		frame.setSize(600, 600);
-		frame.setVisible(true);
-
-		while (true) {
-			universe.update();
-			if (universe.step % 100 == 0) {
-				System.out.println(universe.step);
-			}
-			frame.repaint();
-			Thread.sleep(10);
-		}
+		// run the resulting universe
+		RunUniverse.runUniverseFrame(universe, 600, 10);
 	}
 	
-	public Universe evolveUniverse(int n) {
-
+	/**
+	 * Gradually evolve a universe with a given number of particles until the
+	 * universe remains stable as long as possible. After creating a random
+	 * initial universe, repeatedly create copies of that universe, mutate
+	 * those copies, and determine their quality, i.e. a simple (1+1)-ES 
+	 * 
+	 * @param particles			number of particles in the universe
+	 * @param maxGenerations	max number of generations
+	 * @param maxTurns			max number of turns for the universe to remain stable
+	 * @return					evolved universe
+	 */
+	public Universe evolveUniverse(int particles, int maxGenerations, int maxTurns) {
 		Universe universe = new Universe();
-		universe.randomInit(n);
-		
+		universe.initialize(particles);
 		int best = testRun(universe);
 		
-		for (int gen = 0; gen < 100; gen++) {
+		for (int gen = 0; gen < maxGenerations; gen++) {
 			System.out.println("Generation: " + gen + ",\t Turns: " + best);
 			Universe offspring = copy(universe);
 			mutate(offspring);
@@ -54,18 +53,23 @@ public class UniverseEvolver {
 				best = turns;
 			}
 			
-			if (turns > 100_000) {
+			if (turns > maxTurns) {
 				break;
 			}
 		}
 		return universe;
 	}
 	
-	
+	/**
+	 * Slightly change position, speed, size, etc. of the particles in the 
+	 * universe. This will change the universe and its particles in-place, 
+	 * so this should be done with a copy of the parent universe. 
+	 * 
+	 * @param universe		universe to mutate
+	 */
 	public void mutate(Universe universe) {
-		// slightly change position, speed, or size of the particles in this universe
-		
 		if (random.nextBoolean()) {
+			// XXX is this a good idea? might end up just setting it to 0.0
 			universe.G += random.nextGaussian();
 		}
 		for (Particle p : universe.particles) {
@@ -87,12 +91,20 @@ public class UniverseEvolver {
 		}
 	}
 	
+	/**
+	 * Evaluate the evolved universe. The evaluation is based on the  number of 
+	 * steps until the orbits deteriorate. Currently, this is determined by the 
+	 * distance between particles becoming twice or half the distance of that 
+	 * pair in the beginning of the simulation.
+	 *   
+	 * @param universe		universe under evaluation
+	 * @return				number of steps until orbits deteriorate
+	 */
 	public int testRun(Universe universe) {
-		// TODO test run the universe and return the number of steps until the orbits deteriorate
 		/*
 		 * for two particles, just see that the distance between them stays relatively constant,
 		 * but what for 3 or more particles? see that for each particle the distance to at least
-		 * one other remains contant? 
+		 * one other remains constant? 
 		 */
 		
 		// always run a copy
@@ -117,15 +129,25 @@ public class UniverseEvolver {
 		return universe.step;
 	}
 	
-	/*
-	 * TODO move this to some appropriate helper class
+	/**
+	 * Determine distance between two particles.
+	 * 
+	 * @param p		first particle
+	 * @param q		second particle
+	 * @return		distance between the two
 	 */
 	public double distance(Particle p, Particle q) {
 		return Math.sqrt(Math.pow(p.posX - q.posX, 2)
 				       + Math.pow(p.posY - q.posY, 2)
 				       + Math.pow(p.posZ - q.posZ, 2));
 	}
-	
+
+	/**
+	 * Create a deep-copy of the universe and all its particles.
+	 * 
+	 * @param original		given universe
+	 * @return				deep-copy of that universe
+	 */
 	public Universe copy(Universe original) {
 		Universe copy = new Universe();
 		copy.G = original.G;

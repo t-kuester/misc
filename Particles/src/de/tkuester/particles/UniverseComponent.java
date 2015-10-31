@@ -22,14 +22,18 @@ public class UniverseComponent extends JComponent {
 	private static final long serialVersionUID = -3154952439452964085L;
 
 	/*
-	 * TODO show current camera position
+	 * TODO 
+	 * show current camera position
+	 * show coordinate axes (optional)
+	 * show XYZ lines for each particle (optional)
+	 * show particle speed as vector (optional)
 	 */
 	
 	/** the universe to draw */
-	final Universe universe;
+	private final Universe universe;
 	
 	/** the camera's position */
-	final Camera camera;
+	private final Camera camera;
 	
 	/**
 	 * Create new universe component.
@@ -80,7 +84,7 @@ public class UniverseComponent extends JComponent {
 				int horz = (int) ((1 + y2 / x4) * W/2); 
 				int vert   = (int) ((1 + z2 / x4) * H/2);
 				
-				if (0 <= horz && horz < W && 0 <= vert && vert < H){
+				if (0 <= horz && horz < W && 0 <= vert && vert < H) {
 					// determine apparent size and draw particle
 					double distance = Math.sqrt(x4*x4 + y2*y2 + z2*z2);
 					int s = Math.max((int) (p.size / (distance / 100)), 1);
@@ -93,16 +97,14 @@ public class UniverseComponent extends JComponent {
 					g.fillOval(horz - s, vert - s, 2*s, 2*s);
 				}
 			}
-
-			// maybe show speed as some kind of arrow?
 		}
 	}
 	
-	double distance(double x, double y) {
+	private double distance(double x, double y) {
 		return Math.sqrt(x*x + y*y);
 	}
 	
-	double angle(double x, double y, double d) {
+	private double angle(double x, double y, double d) {
 		return d == 0 ? 0 : Math.acos(x / d) * (y > 0 ? +1 : -1); 
 	}
 
@@ -120,7 +122,9 @@ public class UniverseComponent extends JComponent {
 		
 		@Override
 		public String toString() {
-			return String.format(Locale.UK, "Camera: Yaw %.2f°, Pitch %.2f°, Distance %.2f", yaw, pitch, distance); 
+			return String.format(Locale.UK, 
+					"Camera: Yaw %.2f°, Pitch %.2f°, Distance %.2f", 
+					yaw, pitch, distance); 
 		}
 	}
 	
