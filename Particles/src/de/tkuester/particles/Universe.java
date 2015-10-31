@@ -22,7 +22,11 @@ public class Universe {
 	 * high and after a very short contraction the universe explodes. */
 	double G = .10;
 	
+	/** the current step in the simulation, just for tracking */
 	int step = 0;
+	
+	/** whether to merge very close particles */
+	boolean merging = true;
 	
 	/**
 	 * Randomly initialize a number of particles in the universe.
@@ -30,7 +34,7 @@ public class Universe {
 	 * @param number	number of particles to generate
 	 */
 	public void initialize(int number) {
-		Random random = new Random();
+		Random random = new Random(0); // fixed seed for reproducible results
 		double positions = 1000;
 		double speeds = 10;
 		double sizes = 50;
@@ -77,8 +81,10 @@ public class Universe {
 				double dY = p1.pos.y - p2.pos.y;
 				double dZ = p1.pos.z - p2.pos.z;
 				double d = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
-				double m1 = Math.pow(p1.size, 3);
-				double m2 = Math.pow(p2.size, 3);
+//				Point3D diff = p1.pos.diff(p2.pos);
+//				double d = diff.absolute();
+				double m1 = p1.getMass();
+				double m2 = p2.getMass();
 				double m = m1 + m2;
 				
 				// ... and see whether the particles touch each other
@@ -89,10 +95,12 @@ public class Universe {
 						p1.pos.x = (p1.pos.x * m1 + p2.pos.x * m2) / m;
 						p1.pos.y = (p1.pos.y * m1 + p2.pos.y * m2) / m;
 						p1.pos.z = (p1.pos.z * m1 + p2.pos.z * m2) / m;
+//						p1.pos = p1.pos.mult(m1).add(p2.pos.mult(m2)).div(m);
 						
 						p1.speed.x = (p1.speed.x * m1 + p2.speed.x * m2) / m;
 						p1.speed.y = (p1.speed.y * m1 + p2.speed.y * m2) / m;
 						p1.speed.z = (p1.speed.z * m1 + p2.speed.z * m2) / m;
+//						p1.speed = p1.speed.mult(m1).add(p2.speed.mult(m2)).div(m);
 						
 						p1.size = Math.pow(m, 1/3.);
 					};
@@ -103,31 +111,38 @@ public class Universe {
 					// otherwise, calculate gravitational force ...
 					double force = (m1 * m2 * G) / (d * d);
 					
+//					Point3D norm = diff.norm();
+					
 					// ...and accelerate the particles towards each other
 					double accel1 = force / m1;
 					p1.speed.x -= accel1 * dX / d;
 					p1.speed.y -= accel1 * dY / d;
 					p1.speed.z -= accel1 * dZ / d;
+//					p1.speed = p1.speed.add(norm.mult(accel1 * -1));
 					
 					double accel2 = force / m2;
 					p2.speed.x += accel2 * dX / d;
 					p2.speed.y += accel2 * dY / d;
 					p2.speed.z += accel2 * dZ / d;
+//					p2.speed = p2.speed.add(norm.mult(accel2));
 				}
 			}
 		}
 
-		// execute all the "merger" tasks
-		merger.forEach(Runnable::run);
-		
-		// remove particles that were destroyed in this step
-		this.particles.removeAll(destroyed);
+		if (merging) {
+			// execute all the "merger" tasks
+			merger.forEach(Runnable::run);
+			
+			// remove particles that were destroyed in this step
+			this.particles.removeAll(destroyed);
+		}
 		
 		// update position of remaining particles
 		this.particles.forEach(p -> {
 			p.pos.x += p.speed.x;
 			p.pos.y += p.speed.y;
 			p.pos.z += p.speed.z;
+//			p.pos = p.pos.add(p.speed);
 		});
 		
 		// finally, update step

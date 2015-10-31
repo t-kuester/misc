@@ -20,4 +20,8 @@ public class Particle {
 	/** size of the particle, with mass ~= size^3 */
 	double size = 0;
 	
+	double getMass() {
+		return Math.pow(this.size, 3);
+	}
+	
 }
