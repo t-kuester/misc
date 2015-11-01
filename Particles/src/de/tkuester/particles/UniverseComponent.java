@@ -28,12 +28,15 @@ public class UniverseComponent extends JComponent {
 
 	/*
 	 * TODO 
-	 * show coordinate axes (optional)
 	 * show particle speed as vector (optional)
+	 * show particle paths
 	 */
 	
 	/** whether to draw orthogonal lines on XY plane and in Z direction */
 	public static boolean drawOrthogonals = true;
+	
+	/** whether to draw X/Y/Z axes */
+	public static boolean drawCoordinateAxes = false;
 	
 	/** the universe to draw */
 	private final Universe universe;
@@ -68,6 +71,18 @@ public class UniverseComponent extends JComponent {
 
 		double yaw   = Math.toRadians(camera.yaw);
 		double pitch = Math.toRadians(camera.pitch);
+		
+		if (drawCoordinateAxes) {
+			double extend = 10_000;
+			Point3D[] endpoints = {new Point3D(extend, 0, 0), new Point3D(-extend, 0, 0),
+					               new Point3D(0, extend, 0), new Point3D(0, -extend, 0),
+					               new Point3D(0, 0, extend), new Point3D(0, 0, -extend)};
+			g.setColor(Color.WHITE);
+			for (Point3D point : endpoints) {
+				Point p = projection(normalize(point, yaw, pitch, camera.distance), W, H);
+				g.drawLine(W/2, H/2, p.x, p.y);
+			}
+		}
 		
 		for (Particle particle : this.universe.particles) {
 			
@@ -107,8 +122,11 @@ public class UniverseComponent extends JComponent {
 		// show camera position
 		g.setColor(Color.WHITE);
 		g.drawString(this.camera.toString(), 10, 10);
-		
 	}
+
+	/*
+	 * SOME HELPER FUNCTIONS
+	 */
 	
 	private Point3D normalize(Point3D p, double yaw, double pitch, double distance) {
 		// determine horizontal angle and position
@@ -134,7 +152,7 @@ public class UniverseComponent extends JComponent {
 		int vert = (int) ((1 + p.z / p.x) * height/2);
 		return new Point(horz, vert);
 	}
-	
+
 	private double distance(double x, double y) {
 		return Math.sqrt(x*x + y*y);
 	}
@@ -142,7 +160,6 @@ public class UniverseComponent extends JComponent {
 	private double angle(double x, double y, double d) {
 		return d == 0 ? 0 : Math.acos(x / d) * (y > 0 ? +1 : -1); 
 	}
-
 	
 	/**
 	 * Class for encapsulating the current orientation of the camera.
