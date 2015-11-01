@@ -28,8 +28,6 @@ public class RunUniverse {
 	 * Create a Frame for running and showing the Universe. The universe is
 	 * advanced in regular intervals and the frame is updated accordingly.
 	 * 
-	 * TODO user proper Swing threading
-	 * 
 	 * @param universe		the Universe to simulate
 	 * @param size			size of the frame (both width and height)
 	 * @param sleep			sleep time between steps

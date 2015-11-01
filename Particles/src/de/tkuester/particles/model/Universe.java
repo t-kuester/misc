@@ -33,7 +33,7 @@ public class Universe {
 	 * 
 	 * @param number	number of particles to generate
 	 */
-	public void initialize(int number) {
+	public synchronized void initialize(int number) {
 		Random random = new Random(0); // fixed seed for reproducible results
 		double positions = 1000;
 		double speeds = 10;
@@ -64,7 +64,7 @@ public class Universe {
 	 * another "time step" (or indeterminate length). Particles are
 	 * attracted to each other by gravity and will merge if close enough.
 	 */
-	public void update() {
+	public synchronized void update() {
 		// the particles that were destroyed (absorbed) in this step
 		Set<Particle> destroyed = new HashSet<>();
 		// deferred tasks for merging particles

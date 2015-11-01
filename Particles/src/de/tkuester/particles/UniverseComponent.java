@@ -100,64 +100,66 @@ public class UniverseComponent extends JComponent {
 			}
 		}
 		
-		for (Particle particle : this.universe.particles) {
-			
-			// normalize particle's position w.r.t. camera
-			Point3D norm = normalize(particle.pos, yaw, pitch, camera.distance);
-			
-			// if particle is in front of camera
-			if (norm.x > 0) {
-				// determine position on screen
-				Point p = projection(norm, W, H);
+		synchronized (this.universe) {
+			for (Particle particle : this.universe.particles) {
 				
-				// draw lines from (0,0,0) to (x,y,0) and further to (x,y,z)
-				if (drawOrthogonals) {
-					Point3D posXY = new Point3D(particle.pos.x, particle.pos.y, 0);
-					Point p2 = projection(normalize(posXY, yaw, pitch, camera.distance), W, H);
-
-					g.setColor(Color.DARK_GRAY);
-					g.drawLine(W/2, H/2, p2.x, p2.y);
-					g.drawLine(p2.x, p2.y, p.x, p.y);
-				}
+				// normalize particle's position w.r.t. camera
+				Point3D norm = normalize(particle.pos, yaw, pitch, camera.distance);
 				
-				if (speedVectorLength > 0) {
-					Point3D speed = particle.pos.add(particle.speed.mult(speedVectorLength));
-					Point p2 = projection(normalize(speed, yaw, pitch, camera.distance), W, H);
+				// if particle is in front of camera
+				if (norm.x > 0) {
+					// determine position on screen
+					Point p = projection(norm, W, H);
 					
-					g.setColor(Color.YELLOW);
-					g.drawLine(p.x, p.y, p2.x, p2.y);
-				}
-				
-				if (trailLength > 0) {
-					// store copy in list (only needed if pos is mutated)
-					LinkedList<Point3D> trail = particleTrails.get(particle);
-					if (trail.size() > trailLength) {
-						trail.pop();
+					// draw lines from (0,0,0) to (x,y,0) and further to (x,y,z)
+					if (drawOrthogonals) {
+						Point3D posXY = new Point3D(particle.pos.x, particle.pos.y, 0);
+						Point p2 = projection(normalize(posXY, yaw, pitch, camera.distance), W, H);
+	
+						g.setColor(Color.DARK_GRAY);
+						g.drawLine(W/2, H/2, p2.x, p2.y);
+						g.drawLine(p2.x, p2.y, p.x, p.y);
 					}
-					if (universe.step % trailSkip == 0) {
-						trail.add(new Point3D(particle.pos.x, particle.pos.y, particle.pos.z));
+					
+					if (speedVectorLength > 0) {
+						Point3D speed = particle.pos.add(particle.speed.mult(speedVectorLength));
+						Point p2 = projection(normalize(speed, yaw, pitch, camera.distance), W, H);
+						
+						g.setColor(Color.YELLOW);
+						g.drawLine(p.x, p.y, p2.x, p2.y);
 					}
-					// draw trails behind particles
-					g.setColor(Color.BLUE);
-					Point last = null;
-					for (Point3D current : trail) {
-						Point cur = projection(normalize(current, yaw, pitch, camera.distance), W, H);
-						if (last != null) {
-							g.drawLine(last.x, last.y, cur.x, cur.y);
+					
+					if (trailLength > 0) {
+						// store copy in list (only needed if pos is mutated)
+						LinkedList<Point3D> trail = particleTrails.get(particle);
+						if (trail.size() > trailLength) {
+							trail.pop();
 						}
-						last = cur;
+						if (universe.step % trailSkip == 0) {
+							trail.add(new Point3D(particle.pos.x, particle.pos.y, particle.pos.z));
+						}
+						// draw trails behind particles
+						g.setColor(Color.BLUE);
+						Point last = null;
+						for (Point3D current : trail) {
+							Point cur = projection(normalize(current, yaw, pitch, camera.distance), W, H);
+							if (last != null) {
+								g.drawLine(last.x, last.y, cur.x, cur.y);
+							}
+							last = cur;
+						}
 					}
-				}
-				
-				// finally, determine apparent size and draw particle itself
-				if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
-					double distance = norm.absolute();
-					int s = Math.max((int) (particle.size / (distance / 100)), 1);
 					
-					// use color to indicate distance; further away -> dimmer
-					float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
-					g.setColor(new Color(f, f, f));
-					g.fillOval(p.x - s, p.y - s, 2*s, 2*s);
+					// finally, determine apparent size and draw particle itself
+					if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
+						double distance = norm.absolute();
+						int s = Math.max((int) (particle.size / (distance / 100)), 1);
+						
+						// use color to indicate distance; further away -> dimmer
+						float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
+						g.setColor(new Color(f, f, f));
+						g.fillOval(p.x - s, p.y - s, 2*s, 2*s);
+					}
 				}
 			}
 		}
