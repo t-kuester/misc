@@ -28,7 +28,6 @@ public class UniverseComponent extends JComponent {
 
 	/*
 	 * TODO 
-	 * show particle speed as vector (optional)
 	 * show particle paths
 	 */
 	
@@ -37,6 +36,10 @@ public class UniverseComponent extends JComponent {
 	
 	/** whether to draw X/Y/Z axes */
 	public static boolean drawCoordinateAxes = false;
+	
+	/** whether to draw vectors representing the current speed of the particles */
+	public static boolean drawSpeedVectors = true;
+	
 	
 	/** the universe to draw */
 	private final Universe universe;
@@ -97,12 +100,19 @@ public class UniverseComponent extends JComponent {
 				// draw lines from (0,0,0) to (x,y,0) and further to (x,y,z)
 				if (drawOrthogonals) {
 					Point3D posXY = new Point3D(particle.pos.x, particle.pos.y, 0);
-					Point3D normXY = normalize(posXY, yaw, pitch, camera.distance);
-					Point p2 = projection(normXY, W, H);
+					Point p2 = projection(normalize(posXY, yaw, pitch, camera.distance), W, H);
 
 					g.setColor(Color.GRAY);
 					g.drawLine(W/2, H/2, p2.x, p2.y);
 					g.drawLine(p2.x, p2.y, p.x, p.y);
+				}
+				
+				if (drawSpeedVectors) {
+					Point3D speed = particle.pos.add(particle.speed);
+					Point p2 = projection(normalize(speed, yaw, pitch, camera.distance), W, H);
+					
+					g.setColor(Color.YELLOW);
+					g.drawLine(p.x, p.y, p2.x, p2.y);
 				}
 				
 				if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
