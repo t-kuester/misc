@@ -1,10 +1,10 @@
 package de.tkuester.particles.model;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
 /**
  * The "universe" containing the particles. It manages how the particles
@@ -65,10 +65,8 @@ public class Universe {
 	 * attracted to each other by gravity and will merge if close enough.
 	 */
 	public synchronized void update() {
-		// the particles that were destroyed (absorbed) in this step
-		Set<Particle> destroyed = new HashSet<>();
-		// deferred tasks for merging particles
-		Set<Runnable> merger = new HashSet<>();
+		// what particles have to be merged into what other particles
+		Map<Particle, Particle> mergeInto = new HashMap<>();
 		
 		// for each combination of pairs of particles...
 		for (int i = 0; i < this.particles.size(); i++) {
@@ -83,32 +81,21 @@ public class Universe {
 				double d = Math.sqrt(dX * dX + dY * dY + dZ * dZ);
 //				Point3D diff = p1.pos.sub(p2.pos);
 //				double d = diff.absolute();
-				double m1 = p1.getMass();
-				double m2 = p2.getMass();
-				double m = m1 + m2;
 				
 				// ... and see whether the particles touch each other
-				if (d < p1.size + p2.size) {
-					
-					// if so, merge second into first, and destroy second
-					Runnable merge = () -> {
-						p1.pos.x = (p1.pos.x * m1 + p2.pos.x * m2) / m;
-						p1.pos.y = (p1.pos.y * m1 + p2.pos.y * m2) / m;
-						p1.pos.z = (p1.pos.z * m1 + p2.pos.z * m2) / m;
-//						p1.pos = p1.pos.mult(m1).add(p2.pos.mult(m2)).div(m);
-						
-						p1.speed.x = (p1.speed.x * m1 + p2.speed.x * m2) / m;
-						p1.speed.y = (p1.speed.y * m1 + p2.speed.y * m2) / m;
-						p1.speed.z = (p1.speed.z * m1 + p2.speed.z * m2) / m;
-//						p1.speed = p1.speed.mult(m1).add(p2.speed.mult(m2)).div(m);
-						
-						p1.size = Math.pow(m, 1/3.);
-					};
-					merger.add(merge);
-					destroyed.add(p2);
+				if (merging && d < p1.size + p2.size) {
+					/*
+					 *  particles are merged sort-of union-find-like; if this particle 
+					 *  intersects with many others, it does not really matter which 
+					 *  one it is merged into, as long as it is merged before the one 
+					 *  it is merged into is merged itself into some other particle
+					 */
+					mergeInto.put(p1, p2);
 					
 				} else {
 					// otherwise, calculate gravitational force ...
+					double m1 = p1.getMass();
+					double m2 = p2.getMass();
 					double force = (m1 * m2 * G) / (d * d);
 					
 //					Point3D norm = diff.norm();
@@ -130,11 +117,28 @@ public class Universe {
 		}
 
 		if (merging) {
-			// execute all the "merger" tasks
-			merger.forEach(Runnable::run);
-			
-			// remove particles that were destroyed in this step
-			this.particles.removeAll(destroyed);
+			// merge particles in the same order they were put into the map
+			for (Particle p1 : particles) {
+				if (mergeInto.containsKey(p1)) {
+					Particle p2 = mergeInto.get(p1);
+					double m1 = p1.getMass();
+					double m2 = p2.getMass();
+					double m = m1 + m2;
+					
+					p2.pos.x = (p1.pos.x * m1 + p2.pos.x * m2) / m;
+					p2.pos.y = (p1.pos.y * m1 + p2.pos.y * m2) / m;
+					p2.pos.z = (p1.pos.z * m1 + p2.pos.z * m2) / m;
+	//				p2.pos = p1.pos.mult(m1).add(p2.pos.mult(m2)).div(m);
+					
+					p2.speed.x = (p1.speed.x * m1 + p2.speed.x * m2) / m;
+					p2.speed.y = (p1.speed.y * m1 + p2.speed.y * m2) / m;
+					p2.speed.z = (p1.speed.z * m1 + p2.speed.z * m2) / m;
+	//				p2.speed = p1.speed.mult(m1).add(p2.speed.mult(m2)).div(m);
+					
+					p2.size = Math.pow(m, 1/3.);
+				}
+			}
+			particles.removeAll(mergeInto.keySet());
 		}
 		
 		// update position of remaining particles
@@ -147,6 +151,9 @@ public class Universe {
 		
 		// finally, update step
 		this.step++;
+		
+//		double total = particles.stream().mapToDouble(Particle::getMass).sum();
+//		System.out.println(total);
 	}
 	
 }
