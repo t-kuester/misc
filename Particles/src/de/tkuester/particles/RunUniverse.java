@@ -1,6 +1,10 @@
 package de.tkuester.particles;
 
+import java.awt.event.ActionEvent;
+
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 import de.tkuester.particles.model.Particle;
 import de.tkuester.particles.model.Universe;
@@ -34,25 +38,21 @@ public class RunUniverse {
 	 * @param update		whether to update the universe (false for testing just the camera)
 	 */
 	public static void runUniverseFrame(Universe universe, int size, int sleep, boolean update) {
-
-		// create frame with UniverseComponent
-		JFrame frame = new JFrame("Universe");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().add(new UniverseComponent(universe));
-		frame.pack();
-		frame.setSize(size, size);
-		frame.setVisible(true);
-
-		// update universe state and repaint frame
-		while (update) {
-			universe.update();
-			frame.repaint();
-			try {
-				Thread.sleep(sleep);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+		SwingUtilities.invokeLater(() -> {
+			// create frame with UniverseComponent
+			JFrame frame = new JFrame("Universe");
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.getContentPane().add(new UniverseComponent(universe));
+			frame.pack();
+			frame.setSize(size, size);
+			frame.setVisible(true);
+			
+			// update universe state and repaint frame
+			new Timer(sleep, (ActionEvent e) -> {
+				universe.update();
+				frame.repaint();
+			}).start();
+		});
 	}
 	
 	/**
