@@ -6,7 +6,10 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.util.LinkedList;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.swing.JComponent;
 
@@ -26,10 +29,7 @@ public class UniverseComponent extends JComponent {
 	
 	private static final long serialVersionUID = -3154952439452964085L;
 
-	/*
-	 * TODO 
-	 * show particle paths
-	 */
+	// OPTIONS FOR DRAWING
 	
 	/** whether to draw orthogonal lines on XY plane and in Z direction */
 	public static boolean drawOrthogonals = true;
@@ -37,15 +37,25 @@ public class UniverseComponent extends JComponent {
 	/** whether to draw X/Y/Z axes */
 	public static boolean drawCoordinateAxes = false;
 	
-	/** whether to draw vectors representing the current speed of the particles */
-	public static boolean drawSpeedVectors = true;
+	/** length of speed arrows as multiple of speed; 0 -> no vectors */
+	public static int speedVectorLength = 0;
 	
+	/** length of particle trail to draw; 0 -> no trail */
+	public static int trailLength = 0;
+	
+	/** how many steps to skip between trail segments; makes trails longer but more rugged */
+	public static int trailSkip = 3; 
+	
+	// MEMBER VARIABLES / CURRENT STATE
 	
 	/** the universe to draw */
 	private final Universe universe;
 	
 	/** the camera's position */
 	private final Camera camera;
+	
+	/** holds some past positions of particles, for drawing trails */
+	private final Map<Particle, LinkedList<Point3D>> particleTrails;
 	
 	/**
 	 * Create new universe component.
@@ -61,6 +71,9 @@ public class UniverseComponent extends JComponent {
 		this.addMouseListener(cameraControl);
 		this.addMouseMotionListener(cameraControl);
 		this.addMouseWheelListener(cameraControl);
+
+		this.particleTrails = this.universe.particles.stream()
+				.collect(Collectors.toMap(p -> p, p -> new LinkedList<>()));
 	}
 	
 	@Override
@@ -102,29 +115,48 @@ public class UniverseComponent extends JComponent {
 					Point3D posXY = new Point3D(particle.pos.x, particle.pos.y, 0);
 					Point p2 = projection(normalize(posXY, yaw, pitch, camera.distance), W, H);
 
-					g.setColor(Color.GRAY);
+					g.setColor(Color.DARK_GRAY);
 					g.drawLine(W/2, H/2, p2.x, p2.y);
 					g.drawLine(p2.x, p2.y, p.x, p.y);
 				}
 				
-				if (drawSpeedVectors) {
-					Point3D speed = particle.pos.add(particle.speed);
+				if (speedVectorLength > 0) {
+					Point3D speed = particle.pos.add(particle.speed.mult(speedVectorLength));
 					Point p2 = projection(normalize(speed, yaw, pitch, camera.distance), W, H);
 					
 					g.setColor(Color.YELLOW);
 					g.drawLine(p.x, p.y, p2.x, p2.y);
 				}
 				
+				if (trailLength > 0) {
+					// store copy in list (only needed if pos is mutated)
+					LinkedList<Point3D> trail = particleTrails.get(particle);
+					if (trail.size() > trailLength) {
+						trail.pop();
+					}
+					if (universe.step % trailSkip == 0) {
+						trail.add(new Point3D(particle.pos.x, particle.pos.y, particle.pos.z));
+					}
+					// draw trails behind particles
+					g.setColor(Color.BLUE);
+					Point last = null;
+					for (Point3D current : trail) {
+						Point cur = projection(normalize(current, yaw, pitch, camera.distance), W, H);
+						if (last != null) {
+							g.drawLine(last.x, last.y, cur.x, cur.y);
+						}
+						last = cur;
+					}
+				}
+				
+				// finally, determine apparent size and draw particle itself
 				if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
-					// determine apparent size and draw particle
 					double distance = norm.absolute();
 					int s = Math.max((int) (particle.size / (distance / 100)), 1);
 					
-					// use color to indicate either size or distance
+					// use color to indicate distance; further away -> dimmer
 					float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
-					Color c = new Color(f, f, f);
-					g.setColor(c);
-					
+					g.setColor(new Color(f, f, f));
 					g.fillOval(p.x - s, p.y - s, 2*s, 2*s);
 				}
 			}
