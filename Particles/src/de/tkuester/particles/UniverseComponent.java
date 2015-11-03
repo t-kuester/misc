@@ -192,8 +192,9 @@ public class UniverseComponent extends JComponent {
 	}
 	
 	private Point projection(Point3D p, int width, int height) {
-		int horz = (int) ((1 + p.y / p.x) * width/2); 
-		int vert = (int) ((1 + p.z / p.x) * height/2);
+		int side = Math.max(width, height);
+		int horz = (int) ( width/2 + (p.y / p.x) * side/2); 
+		int vert = (int) (height/2 + (p.z / p.x) * side/2);
 		return new Point(horz, vert);
 	}
 

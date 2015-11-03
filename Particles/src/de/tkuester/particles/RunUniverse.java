@@ -48,10 +48,12 @@ public class RunUniverse {
 			frame.setVisible(true);
 			
 			// update universe state and repaint frame
-			new Timer(sleep, (ActionEvent e) -> {
-				universe.update();
-				frame.repaint();
-			}).start();
+			if (update) {
+				new Timer(sleep, (ActionEvent e) -> {
+					universe.update();
+					frame.repaint();
+				}).start();
+			}
 		});
 	}
 	
