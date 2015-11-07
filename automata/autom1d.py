@@ -1,4 +1,4 @@
-import random
+#!/usr/bin/env python3
 
 """ Module for creating and printing simple 1-dimensional line-automata.
 Supports different simple automata, such as the different elementary cellular
@@ -6,6 +6,8 @@ automata by Stephen Wolfram, and helper methods for creating different ones.
 
 Tobias Kuester, 2015
 """
+
+import random
 
 # SOME HELPER FUNCTIONS
 

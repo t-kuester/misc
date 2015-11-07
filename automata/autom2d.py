@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """ Module for creating different kinds of 2D cellular automata, such as the 
 "Game of Life", and others. Each automata has some functions for creating the 

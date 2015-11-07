@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """ Very simple "3D engine", purely for playing around with perspective and
 stuff and generally for "doing it myself", not for productive use of any kind.

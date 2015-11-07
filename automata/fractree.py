@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """Fractal Tree Generator
 by Tobias Kuester, <tobias.kuester@gmx.net>, 2011

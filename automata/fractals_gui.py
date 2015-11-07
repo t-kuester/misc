@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """ This is a simple UI for drawing different kinds of fractal shapes, like
 the Koch Snowflake and some others. The fractals are given using some basic
