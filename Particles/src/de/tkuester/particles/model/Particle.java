@@ -19,11 +19,21 @@ public class Particle {
 	/** size of the particle */
 	public double size = 0;
 	
+	/** density of the particle */
+	public double density = 1;
+	
 	/**
 	 * @return	the mass, being size^3
 	 */
 	public double getMass() {
-		return Math.pow(this.size, 3);
+		return Math.pow(this.size, 3) * this.density;
+	}
+	
+	/**
+	 * @param mass	mass of the particle, determining its size
+	 */
+	public void setMass(double mass) {
+		this.size = Math.pow(mass / this.density, 1/3.);
 	}
 	
 }

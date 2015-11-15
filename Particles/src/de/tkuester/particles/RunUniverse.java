@@ -50,7 +50,7 @@ public class RunUniverse {
 			// update universe state and repaint frame
 			if (update) {
 				new Timer(sleep, (ActionEvent e) -> {
-					universe.update();
+					universe.update(true);
 					frame.repaint();
 				}).start();
 			}

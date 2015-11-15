@@ -63,8 +63,10 @@ public class Universe {
 	 * Update speed and position of each particle in the universe after
 	 * another "time step" (or indeterminate length). Particles are
 	 * attracted to each other by gravity and will merge if close enough.
+	 * 
+	 * @param debug		print some debug information
 	 */
-	public synchronized void update() {
+	public synchronized void update(boolean debug) {
 		// what particles have to be merged into what other particles
 		Map<Particle, Particle> mergeInto = new HashMap<>();
 		
@@ -135,7 +137,7 @@ public class Universe {
 					p2.speed.z = (p1.speed.z * m1 + p2.speed.z * m2) / m;
 	//				p2.speed = p1.speed.mult(m1).add(p2.speed.mult(m2)).div(m);
 					
-					p2.size = Math.pow(m, 1/3.);
+					p2.setMass(m);
 				}
 			}
 			particles.removeAll(mergeInto.keySet());
@@ -152,8 +154,12 @@ public class Universe {
 		// finally, update step
 		this.step++;
 		
-//		double total = particles.stream().mapToDouble(Particle::getMass).sum();
-//		System.out.println(total);
+		if (debug) {
+			double totalMass = particles.stream().mapToDouble(Particle::getMass).sum();
+			double totalSpeed = particles.stream().mapToDouble(p -> p.speed.absolute()).sum();
+			System.out.printf("Step %d, Particles: %d, Total Mass: %e, Total Speed: %e\n", 
+					this.step, this.particles.size(), totalMass, totalSpeed);
+		}
 	}
 	
 }

@@ -46,7 +46,7 @@ public class Benchmark {
 			if (i % 100 == 0) {
 				System.out.println("iter " + i);
 			}
-			universe.update();
+			universe.update(false);
 		}
 		long endTime = System.currentTimeMillis();
 		System.out.println("time " + (endTime - startTime));

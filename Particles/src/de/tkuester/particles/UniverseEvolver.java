@@ -118,7 +118,7 @@ public class UniverseEvolver {
 		double distance = p.pos.distance(q.pos);
 		
 		while (true) {
-			universe.update();
+			universe.update(false);
 			double newDistance = p.pos.distance(q.pos);
 			
 			if (newDistance < distance / 2 || newDistance > distance * 2) {
