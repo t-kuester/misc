@@ -25,7 +25,7 @@ public class UniverseEvolver {
 		Universe universe = evolver.evolveUniverse(2, 100, 100_000);
 		
 		// run the resulting universe
-		RunUniverse.runUniverseFrame(universe, 600, 10, true);
+		RunUniverse.runUniverseFrame(universe, 600, 10, 10, true);
 	}
 	
 	/**

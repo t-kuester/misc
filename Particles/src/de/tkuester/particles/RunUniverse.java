@@ -25,7 +25,7 @@ public class RunUniverse {
 //		addLattice(universe, 100, 5);
 //		universe.merging = false;
 
-		runUniverseFrame(universe, 600, 100, true);
+		runUniverseFrame(universe, 600, 100, 1, true);
 	}
 	
 	/**
@@ -35,9 +35,10 @@ public class RunUniverse {
 	 * @param universe		the Universe to simulate
 	 * @param size			size of the frame (both width and height)
 	 * @param sleep			sleep time between steps
+	 * @param repaint		repaint after how many updates?
 	 * @param update		whether to update the universe (false for testing just the camera)
 	 */
-	public static void runUniverseFrame(Universe universe, int size, int sleep, boolean update) {
+	public static void runUniverseFrame(Universe universe, int size, int sleep, int repaint, boolean update) {
 		SwingUtilities.invokeLater(() -> {
 			// create frame with UniverseComponent
 			JFrame frame = new JFrame("Universe");
@@ -51,7 +52,9 @@ public class RunUniverse {
 			if (update) {
 				new Timer(sleep, (ActionEvent e) -> {
 					universe.update(true);
-					frame.repaint();
+					if (universe.step % repaint == 0) {
+						frame.repaint();
+					}
 				}).start();
 			}
 		});
