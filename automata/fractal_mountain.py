@@ -8,7 +8,7 @@ import random, cmath, math
 import tkinter
 
 # factor for randomization as fraction of triangle side length
-FACTOR = 0.0
+FACTOR = 0.075
 
 class Line(object):
 	
@@ -56,8 +56,7 @@ class FractalTriangle(object):
 			b = Line(bc1.t, ab2.s)
 			c = Line(ca1.t, bc2.s)
 			
-			triplets = ((a, ca2, ab1), (b, ab2, bc1), (c, bc2, ca1), (a, b, c))
-			#~ triplets = ((a, ca2, ab1), (b, ab2, bc1), (c, bc2, ca1))
+			triplets = ((a, ca2, ab1), (b, ab2, bc1), (c, bc2, ca1), (c, b, a))
 			self.children = [FractalTriangle(*sides) for sides in triplets]
 			
 	def get_leafs(self):
@@ -68,6 +67,8 @@ class FractalTriangle(object):
 
 # Width and Height of the Frame
 WIDTH, HEIGHT = 800, 600
+
+import time
 
 class FractalMountainFrame(tkinter.Frame):
 
@@ -88,31 +89,25 @@ class FractalMountainFrame(tkinter.Frame):
 		self.reset()
 		
 	def reset(self):
-		a = complex(WIDTH * .25, HEIGHT * .75)
-		b = complex(WIDTH * .50, HEIGHT * .25)
-		c = complex(WIDTH * .75, HEIGHT * .75)
+		a = complex(WIDTH * .1, HEIGHT * .8)
+		b = complex(WIDTH * .50, HEIGHT * .2)
+		c = complex(WIDTH * .9, HEIGHT * .8)
 		self.mountain = FractalTriangle(Line(a, b), Line(b, c), Line(c, a))
-		print(self.mountain)
 		self.paint_mountain()
 		    
 	def expand(self):
 		if self.mountain is not None:
 			self.mountain.expand()
 			self.paint_mountain()
-		
+	
 	def paint_mountain(self):
 		self.canvas.delete("all")
 		if self.mountain:
 			for leaf in self.mountain.get_leafs():
-				#~ a, b, c = (s.s for s in leaf.sides)
-				#~ points = [p for x in (a, b, c, a) for p in (x.real, x.imag)]
-				#~ self.canvas.create_line(points)
 				for side in leaf.sides:
 					self.canvas.create_line(side.s.real, side.s.imag, side.t.real, side.t.imag)
-				
 
 # create and start FracTreeFrame
 if __name__ == "__main__":
 	frame = FractalMountainFrame();
 	frame.mainloop()
-	
