@@ -38,5 +38,30 @@ public class Line {
 			this.right = new Line(midpoint, target);
 		}
 	}
+
 	
+	/**
+	 * Inverse of a line; reference to original Line and segments,
+	 * but with order reversed. Needed for odd-sided mountains.
+	 *
+	 * @author tkuester
+	 */
+	public static class Inverse extends Line {
+
+		private final Line line;
+
+		public Inverse(Line line) {
+			super(line.target, line.source);
+			this.line = line;
+		}
+
+		@Override
+		public void split() {
+			if (this.left == null && this.right == null) {
+				this.line.split();
+				this.left = new Inverse(line.right);
+				this.right = new Inverse(line.left);
+			}
+		}
+	}
 }

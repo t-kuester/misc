@@ -15,6 +15,8 @@ import de.tkuester.particles.model.Triangle;
  * Class for running/testing the mountain. This just creates a new mountain 
  * and a component for displaying it, embeds it into a plain frame.
  * 
+ * TODO helper method for creating mountains with X sides
+ *
  * @author tkuester
  */
 public class RunMountain {
@@ -43,6 +45,12 @@ public class RunMountain {
 				new Triangle(edgeCD, edgeDT, edgeTC),
 				new Triangle(edgeAD, edgeDT, edgeTA));
 				
+//		Line edgeCA = new Line(c, a);
+//		List<Triangle> sides = Arrays.asList(
+//				new Triangle(edgeAB, edgeBT, edgeTA),
+//				new Triangle(edgeCB, edgeBT, edgeTC),
+//				new Triangle(edgeCA, new Line.Inverse(edgeTA), edgeTC));
+
 		Mountain mountain = new Mountain(sides);
 
 		runMountainFrame(mountain, 600);

@@ -130,8 +130,7 @@ public class MountainComponent extends JComponent {
 							// finally, determine apparent size and draw particle itself
 							if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
 								double distance = norm.absolute();
-								// TODO tweak numbers
-								int s = Math.max((int) (10. / distance), 1);
+								int s = Math.max((int) (1000. / distance), 1);
 								
 								// use color to indicate distance; further away -> dimmer
 								float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
