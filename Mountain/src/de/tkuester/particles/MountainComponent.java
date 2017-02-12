@@ -42,7 +42,7 @@ public class MountainComponent extends JComponent {
 	public static boolean drawCoordinateAxes = false;
 	
 	/** whether to draw lines or point cloud */
-	public static boolean drawLines = false;
+	public static boolean drawLines = true;
 	
 	
 	// MEMBER VARIABLES / CURRENT STATE
@@ -104,7 +104,22 @@ public class MountainComponent extends JComponent {
 			for (Triangle triangle : triangles) {
 				for (Line line : Arrays.asList(triangle.ab, triangle.bc, triangle.ca)){
 					if (! drawn.add(line)) continue;
+
+					if (drawLines) {
+						Point3D normSrc = normalize(line.source, yaw, pitch, camera.distance);
+						Point3D normTgt = normalize(line.target, yaw, pitch, camera.distance);
 						
+						// if particle is in front of camera
+						if (normSrc.x > 0 && normTgt.x > 0) {
+							// determine position on screen
+							Point pSrc = projection(normSrc, W, H);
+							Point pTgt = projection(normTgt, W, H);
+							g.setColor(Color.WHITE);
+							g.drawLine(pSrc.x, pSrc.y, pTgt.x, pTgt.y);
+						}
+						continue;
+					}
+					
 					List<Point3D> points = Arrays.asList(line.source, line.target);
 					for (Point3D point : points) {
 						if (! drawn.add(point)) continue;
