@@ -98,46 +98,45 @@ public class MountainComponent extends JComponent {
 		
 		synchronized (this.mountain) {
 			
-			Set<Line> drawnLines = new HashSet<>();
+			Set<Object> drawn = new HashSet<>();
 			
 			Iterable<Triangle> triangles = this.mountain.getAllTriangles()::iterator;
 			for (Triangle triangle : triangles) {
 				for (Line line : Arrays.asList(triangle.ab, triangle.bc, triangle.ca)){
-					if (! drawnLines.contains(line)) {
-						drawnLines.add(line);
+					if (! drawn.add(line)) continue;
 						
-						List<Point3D> points = Arrays.asList(line.source, line.target);
-						for (Point3D point : points) {
+					List<Point3D> points = Arrays.asList(line.source, line.target);
+					for (Point3D point : points) {
+						if (! drawn.add(point)) continue;
+						
+						// normalize points' position w.r.t. camera
+						Point3D norm = normalize(point, yaw, pitch, camera.distance);
+						
+						// if particle is in front of camera
+						if (norm.x > 0) {
+							// determine position on screen
+							Point p = projection(norm, W, H);
 							
-							// normalize points' position w.r.t. camera
-							Point3D norm = normalize(point, yaw, pitch, camera.distance);
+							// draw lines from (0,0,0) to (x,y,0) and further to (x,y,z)
+							if (drawOrthogonals) {
+								Point3D posXY = new Point3D(point.x, point.y, 0);
+								Point p2 = projection(normalize(posXY, yaw, pitch, camera.distance), W, H);
+								
+								g.setColor(Color.DARK_GRAY);
+								g.drawLine(W/2, H/2, p2.x, p2.y);
+								g.drawLine(p2.x, p2.y, p.x, p.y);
+							}
 							
-							// if particle is in front of camera
-							if (norm.x > 0) {
-								// determine position on screen
-								Point p = projection(norm, W, H);
+							// finally, determine apparent size and draw particle itself
+							if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
+								double distance = norm.absolute();
+								// TODO tweak numbers
+								int s = Math.max((int) (10. / distance), 1);
 								
-								// draw lines from (0,0,0) to (x,y,0) and further to (x,y,z)
-								if (drawOrthogonals) {
-									Point3D posXY = new Point3D(point.x, point.y, 0);
-									Point p2 = projection(normalize(posXY, yaw, pitch, camera.distance), W, H);
-									
-									g.setColor(Color.DARK_GRAY);
-									g.drawLine(W/2, H/2, p2.x, p2.y);
-									g.drawLine(p2.x, p2.y, p.x, p.y);
-								}
-								
-								// finally, determine apparent size and draw particle itself
-								if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
-									double distance = norm.absolute();
-									// TODO tweak numbers
-									int s = Math.max((int) (10. / distance), 1);
-									
-									// use color to indicate distance; further away -> dimmer
-									float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
-									g.setColor(new Color(f, f, f));
-									g.fillOval(p.x - s, p.y - s, 2*s, 2*s);
-								}
+								// use color to indicate distance; further away -> dimmer
+								float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
+								g.setColor(new Color(f, f, f));
+								g.fillOval(p.x - s, p.y - s, 2*s, 2*s);
 							}
 						}
 					}
@@ -220,6 +219,7 @@ public class MountainComponent extends JComponent {
 		public void mousePressed(MouseEvent e) {
 			if (e.getButton() == 3) {
 				MountainComponent.this.mountain.expandAll();
+				System.out.println(mountain.getAllTriangles().count());
 				MountainComponent.this.repaint();
 			} else {
 				this.x = e.getX();
@@ -251,6 +251,7 @@ public class MountainComponent extends JComponent {
 		
 		@Override
 		public void keyTyped(KeyEvent e) {
+			// TODO fixme why is this not triggered?
 			System.out.println(e);
 			MountainComponent.this.mountain.expandAll();
 			MountainComponent.this.repaint();

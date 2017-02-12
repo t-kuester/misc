@@ -21,27 +21,27 @@ public class RunMountain {
 
 	public static void main(String[] args) throws Exception {
 
-		double s = 100;
+		double s = 1000;
 		Point3D t = new Point3D( 0,  0, -s);
 		Point3D a = new Point3D( s,  0,  0);
 		Point3D b = new Point3D( 0,  s,  0);
 		Point3D c = new Point3D(-s,  0,  0);
 		Point3D d = new Point3D( 0, -s,  0);
 
-		Line edgeA = new Line(t, a);
-		Line edgeB = new Line(b, t);
-		Line edgeC = new Line(t, c);
-		Line edgeD = new Line(d, t);
-		Line baseAB = new Line(a, b);
-		Line baseCB = new Line(c, b);
-		Line baseCD = new Line(c, d);
-		Line baseAD = new Line(a, d);
+		Line edgeTA = new Line(t, a);
+		Line edgeBT = new Line(b, t);
+		Line edgeTC = new Line(t, c);
+		Line edgeDT = new Line(d, t);
+		Line edgeAB = new Line(a, b);
+		Line edgeCB = new Line(c, b);
+		Line edgeCD = new Line(c, d);
+		Line edgeAD = new Line(a, d);
 		
 		List<Triangle> sides = Arrays.asList(
-				new Triangle(baseAB, edgeB, edgeA),
-				new Triangle(baseCB, edgeC, edgeB),
-				new Triangle(baseCD, edgeC, edgeD),
-				new Triangle(baseAD, edgeA, edgeD));
+				new Triangle(edgeAB, edgeBT, edgeTA),
+				new Triangle(edgeCB, edgeBT, edgeTC),
+				new Triangle(edgeCD, edgeDT, edgeTC),
+				new Triangle(edgeAD, edgeDT, edgeTA));
 				
 		Mountain mountain = new Mountain(sides);
 

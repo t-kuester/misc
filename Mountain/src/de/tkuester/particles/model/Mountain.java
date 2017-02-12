@@ -1,6 +1,5 @@
 package de.tkuester.particles.model;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
