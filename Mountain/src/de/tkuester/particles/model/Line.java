@@ -39,6 +39,11 @@ public class Line {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return String.format("Line(%s, %s)", source, target);
+	}
+
 	
 	/**
 	 * Inverse of a line; reference to original Line and segments,

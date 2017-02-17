@@ -46,4 +46,9 @@ public class Triangle {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		return String.format("Triangle(%s, %s, %s)", ab, bc, ca);
+	}
+
 }
