@@ -2,6 +2,8 @@ package de.tkuester.space3d.mountain.model;
 
 import java.util.Random;
 
+import de.tkuester.space3d.Point3D;
+
 /**
  * Class representing a Line, making up one of the sides of a Triangle.
  *

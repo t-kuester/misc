@@ -29,9 +29,15 @@ A simple Python AI planner, again nothing serious, just for playing around with.
 Can solve some simple problems, but I never got around to implement any more
 elaborate planning algorithms.
 
-Particles/
+Space3D/
 ----------
-Particle/Gravity/Universe-Simulator in Java. Rather simple, can (more or less
-realistically) simulate a number of particles being pulled towards each other
-by "gravity". All this can be viewed with a camera that can be rotated freely
-around the scene, looking inwards.
+Generic pseudo "3D engine" in Java, with simple camera control for various
+small particle simulations, 3D fractals, and similar. Scenes can be viewed
+with a camera that can be rotated freely around the scene, looking inwards.
+
+* Particle/Gravity/Universe-Simulator. Rather simple, can (more or less
+realistically) simulate a number of particles being pulled towards each
+other by "gravity". 
+* Fractal Mountain generator. Starting with a regular Pyramid, recursively
+split the sides into smaller and smaller triangles, until the results
+looks very natural and mountain-like.

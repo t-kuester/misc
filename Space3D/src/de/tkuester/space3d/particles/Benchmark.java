@@ -1,6 +1,6 @@
 package de.tkuester.space3d.particles;
 
-import de.tkuester.space3d.particles.model.Point3D;
+import de.tkuester.space3d.Point3D;
 import de.tkuester.space3d.particles.model.Universe;
 
 /**

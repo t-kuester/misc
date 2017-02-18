@@ -2,8 +2,8 @@ package de.tkuester.space3d.particles;
 
 import java.util.Arrays;
 
+import de.tkuester.space3d.Point3D;
 import de.tkuester.space3d.particles.model.Particle;
-import de.tkuester.space3d.particles.model.Point3D;
 import de.tkuester.space3d.particles.model.Universe;
 
 /**
