@@ -1,9 +1,9 @@
-package de.tkuester.particles;
+package de.tkuester.space3d.particles;
 
 import java.util.Random;
 
-import de.tkuester.particles.model.Particle;
-import de.tkuester.particles.model.Universe;
+import de.tkuester.space3d.particles.model.Particle;
+import de.tkuester.space3d.particles.model.Universe;
 
 /**
  * This class can be used for "evolving" a universe that remains relatively 

@@ -1,4 +1,4 @@
-package de.tkuester.particles.model;
+package de.tkuester.space3d.mountain.model;
 
 import java.util.List;
 import java.util.stream.Collectors;

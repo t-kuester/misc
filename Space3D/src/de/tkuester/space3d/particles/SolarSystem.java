@@ -1,10 +1,10 @@
-package de.tkuester.particles;
+package de.tkuester.space3d.particles;
 
 import java.util.Arrays;
 
-import de.tkuester.particles.model.Particle;
-import de.tkuester.particles.model.Point3D;
-import de.tkuester.particles.model.Universe;
+import de.tkuester.space3d.particles.model.Particle;
+import de.tkuester.space3d.particles.model.Point3D;
+import de.tkuester.space3d.particles.model.Universe;
 
 /**
  * Solar system simulation. The goal of this class is to simulate the

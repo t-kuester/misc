@@ -1,9 +1,9 @@
-package de.tkuester.particles;
+package de.tkuester.space3d.mountain;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import de.tkuester.particles.model.Mountain;
+import de.tkuester.space3d.mountain.model.Mountain;
 
 /**
  * Class for running/testing the mountain. This just creates a new mountain 

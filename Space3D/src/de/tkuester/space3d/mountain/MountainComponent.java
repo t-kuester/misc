@@ -1,69 +1,65 @@
-package de.tkuester.particles;
+package de.tkuester.space3d.mountain;
 
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.util.LinkedList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import javax.swing.JComponent;
 
-import de.tkuester.particles.model.Particle;
-import de.tkuester.particles.model.Point3D;
-import de.tkuester.particles.model.Universe;
+import de.tkuester.space3d.mountain.model.Line;
+import de.tkuester.space3d.mountain.model.Mountain;
+import de.tkuester.space3d.mountain.model.Point3D;
+import de.tkuester.space3d.mountain.model.Triangle;
 
 /**
- * Component for displaying a universe of particles. The particles are shown
+ * Component for displaying a fractal mountain. The points are shown
  * in a more or less correct three dimensional perspective. The camera is
  * always pointed towards the center but can be moved around a sphere and
  * moved further in or outwards, using the mouse.
  * 
  * @author tkuester
  */
-public class UniverseComponent extends JComponent {
+public class MountainComponent extends JComponent {
 	
-	private static final long serialVersionUID = -3154952439452964085L;
+	private static final long serialVersionUID = 3684311418667499852L;
 
 	// OPTIONS FOR DRAWING
-	
+
 	/** whether to draw orthogonal lines on XY plane and in Z direction */
-	public static boolean drawOrthogonals = true;
+	public static boolean drawOrthogonals = false;
 	
 	/** whether to draw X/Y/Z axes */
 	public static boolean drawCoordinateAxes = false;
 	
-	/** length of speed arrows as multiple of speed; 0 -> no vectors */
-	public static int speedVectorLength = 0;
+	/** whether to draw lines or point cloud */
+	public static boolean drawLines = true;
 	
-	/** length of particle trail to draw; 0 -> no trail */
-	public static int trailLength = 0;
-	
-	/** how many steps to skip between trail segments; makes trails longer but more rugged */
-	public static int trailSkip = 3; 
 	
 	// MEMBER VARIABLES / CURRENT STATE
 	
-	/** the universe to draw */
-	private final Universe universe;
+	/** the mountain to draw */
+	private final Mountain mountain;
 	
 	/** the camera's position */
 	private final Camera camera;
 	
-	/** holds some past positions of particles, for drawing trails */
-	private final Map<Particle, LinkedList<Point3D>> particleTrails;
-	
 	/**
-	 * Create new universe component.
+	 * Create new mountain component.
 	 * 
-	 * @param universe	the universe
+	 * @param mountain	the mountain
 	 */
-	public UniverseComponent(Universe universe) {
-		this.universe = universe;
+	public MountainComponent(Mountain mountain) {
+		this.mountain = mountain;
 		this.camera = new Camera();
 		
 		// add mouse listener for camera control
@@ -71,9 +67,9 @@ public class UniverseComponent extends JComponent {
 		this.addMouseListener(cameraControl);
 		this.addMouseMotionListener(cameraControl);
 		this.addMouseWheelListener(cameraControl);
-
-		this.particleTrails = this.universe.particles.stream()
-				.collect(Collectors.toMap(p -> p, p -> new LinkedList<>()));
+		
+		KeyboardControl keyboardControl = new KeyboardControl();
+		this.addKeyListener(keyboardControl);
 	}
 	
 	@Override
@@ -100,65 +96,63 @@ public class UniverseComponent extends JComponent {
 			}
 		}
 		
-		synchronized (this.universe) {
-			for (Particle particle : this.universe.particles) {
-				
-				// normalize particle's position w.r.t. camera
-				Point3D norm = normalize(particle.pos, yaw, pitch, camera.distance);
-				
-				// if particle is in front of camera
-				if (norm.x > 0) {
-					// determine position on screen
-					Point p = projection(norm, W, H);
-					
-					// draw lines from (0,0,0) to (x,y,0) and further to (x,y,z)
-					if (drawOrthogonals) {
-						Point3D posXY = new Point3D(particle.pos.x, particle.pos.y, 0);
-						Point p2 = projection(normalize(posXY, yaw, pitch, camera.distance), W, H);
-	
-						g.setColor(Color.DARK_GRAY);
-						g.drawLine(W/2, H/2, p2.x, p2.y);
-						g.drawLine(p2.x, p2.y, p.x, p.y);
-					}
-					
-					if (speedVectorLength > 0) {
-						Point3D speed = particle.pos.add(particle.speed.mult(speedVectorLength));
-						Point p2 = projection(normalize(speed, yaw, pitch, camera.distance), W, H);
+		synchronized (this.mountain) {
+			
+			Set<Object> drawn = new HashSet<>();
+			
+			Iterable<Triangle> triangles = this.mountain.getAllTriangles()::iterator;
+			for (Triangle triangle : triangles) {
+				for (Line line : Arrays.asList(triangle.ab, triangle.bc, triangle.ca)){
+					if (! drawn.add(line)) continue;
+
+					if (drawLines) {
+						Point3D normSrc = normalize(line.source, yaw, pitch, camera.distance);
+						Point3D normTgt = normalize(line.target, yaw, pitch, camera.distance);
 						
-						g.setColor(Color.YELLOW);
-						g.drawLine(p.x, p.y, p2.x, p2.y);
+						// if particle is in front of camera
+						if (normSrc.x > 0 && normTgt.x > 0) {
+							// determine position on screen
+							Point pSrc = projection(normSrc, W, H);
+							Point pTgt = projection(normTgt, W, H);
+							g.setColor(Color.WHITE);
+							g.drawLine(pSrc.x, pSrc.y, pTgt.x, pTgt.y);
+						}
+						continue;
 					}
 					
-					if (trailLength > 0) {
-						// store copy in list (only needed if pos is mutated)
-						LinkedList<Point3D> trail = particleTrails.get(particle);
-						if (trail.size() > trailLength) {
-							trail.pop();
-						}
-						if (universe.step % trailSkip == 0) {
-							trail.add(new Point3D(particle.pos.x, particle.pos.y, particle.pos.z));
-						}
-						// draw trails behind particles
-						g.setColor(Color.BLUE);
-						Point last = null;
-						for (Point3D current : trail) {
-							Point cur = projection(normalize(current, yaw, pitch, camera.distance), W, H);
-							if (last != null) {
-								g.drawLine(last.x, last.y, cur.x, cur.y);
+					List<Point3D> points = Arrays.asList(line.source, line.target);
+					for (Point3D point : points) {
+						if (! drawn.add(point)) continue;
+						
+						// normalize points' position w.r.t. camera
+						Point3D norm = normalize(point, yaw, pitch, camera.distance);
+						
+						// if particle is in front of camera
+						if (norm.x > 0) {
+							// determine position on screen
+							Point p = projection(norm, W, H);
+							
+							// draw lines from (0,0,0) to (x,y,0) and further to (x,y,z)
+							if (drawOrthogonals) {
+								Point3D posXY = new Point3D(point.x, point.y, 0);
+								Point p2 = projection(normalize(posXY, yaw, pitch, camera.distance), W, H);
+								
+								g.setColor(Color.DARK_GRAY);
+								g.drawLine(W/2, H/2, p2.x, p2.y);
+								g.drawLine(p2.x, p2.y, p.x, p.y);
 							}
-							last = cur;
+							
+							// finally, determine apparent size and draw particle itself
+							if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
+								double distance = norm.absolute();
+								int s = Math.max((int) (1000. / distance), 1);
+								
+								// use color to indicate distance; further away -> dimmer
+								float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
+								g.setColor(new Color(f, f, f));
+								g.fillOval(p.x - s, p.y - s, 2*s, 2*s);
+							}
 						}
-					}
-					
-					// finally, determine apparent size and draw particle itself
-					if (0 <= p.x && p.x < W && 0 <= p.y && p.y < H) {
-						double distance = norm.absolute();
-						int s = Math.max((int) (particle.size / (distance / 100)), 1);
-						
-						// use color to indicate distance; further away -> dimmer
-						float f = (float) Math.max(Math.min(camera.distance / distance, 1.0), 0.0);
-						g.setColor(new Color(f, f, f));
-						g.fillOval(p.x - s, p.y - s, 2*s, 2*s);
 					}
 				}
 			}
@@ -237,8 +231,14 @@ public class UniverseComponent extends JComponent {
 		
 		@Override
 		public void mousePressed(MouseEvent e) {
-			this.x = e.getX();
-			this.y = e.getY();
+			if (e.getButton() == 3) {
+				MountainComponent.this.mountain.expandAll();
+				System.out.println(mountain.getAllTriangles().count());
+				MountainComponent.this.repaint();
+			} else {
+				this.x = e.getX();
+				this.y = e.getY();	
+			}
 		}
 		
 		@Override
@@ -248,17 +248,30 @@ public class UniverseComponent extends JComponent {
 			x = e.getX();
 			y = e.getY();
 			
-			UniverseComponent.this.camera.yaw -= dx;
-			UniverseComponent.this.camera.pitch -= dy;
-			UniverseComponent.this.repaint();
+			MountainComponent.this.camera.yaw -= dx;
+			MountainComponent.this.camera.pitch -= dy;
+			MountainComponent.this.repaint();
 		}
 		
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
 			double amount = 1 + (e.getWheelRotation() * .1);
-			UniverseComponent.this.camera.distance *= amount;
-			UniverseComponent.this.repaint();
+			MountainComponent.this.camera.distance *= amount;
+			MountainComponent.this.repaint();
 		}
 	}
+	
+	private class KeyboardControl extends KeyAdapter {
+		
+		@Override
+		public void keyTyped(KeyEvent e) {
+			// TODO fixme why is this not triggered?
+			System.out.println(e);
+			MountainComponent.this.mountain.expandAll();
+			MountainComponent.this.repaint();
+		}
+		
+	}
+	
 
 }
