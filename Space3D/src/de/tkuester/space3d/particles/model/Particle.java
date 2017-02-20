@@ -1,5 +1,6 @@
-package de.tkuester.particles.model;
+package de.tkuester.space3d.particles.model;
 
+import de.tkuester.space3d.Point3D;
 
 /**
  * Class encapsulating all the attributes of a single particle in the 

@@ -1,4 +1,4 @@
-package de.tkuester.particles.model;
+package de.tkuester.space3d;
 
 import java.util.Locale;
 

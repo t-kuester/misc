@@ -1,4 +1,4 @@
-package de.tkuester.particles.model;
+package de.tkuester.space3d.mountain.model;
 
 import java.util.Arrays;
 import java.util.List;
@@ -46,4 +46,9 @@ public class Triangle {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		return String.format("Triangle(%s, %s, %s)", ab, bc, ca);
+	}
+
 }

@@ -1,4 +1,4 @@
-package de.tkuester.particles.model;
+package de.tkuester.space3d.particles.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;

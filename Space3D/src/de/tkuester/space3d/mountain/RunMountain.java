@@ -1,15 +1,9 @@
-package de.tkuester.particles;
-
-import java.util.Arrays;
-import java.util.List;
+package de.tkuester.space3d.mountain;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import de.tkuester.particles.model.Line;
-import de.tkuester.particles.model.Mountain;
-import de.tkuester.particles.model.Point3D;
-import de.tkuester.particles.model.Triangle;
+import de.tkuester.space3d.mountain.model.Mountain;
 
 /**
  * Class for running/testing the mountain. This just creates a new mountain 
@@ -20,31 +14,7 @@ import de.tkuester.particles.model.Triangle;
 public class RunMountain {
 
 	public static void main(String[] args) throws Exception {
-
-		double s = 1000;
-		Point3D t = new Point3D( 0,  0, -s);
-		Point3D a = new Point3D( s,  0,  0);
-		Point3D b = new Point3D( 0,  s,  0);
-		Point3D c = new Point3D(-s,  0,  0);
-		Point3D d = new Point3D( 0, -s,  0);
-
-		Line edgeTA = new Line(t, a);
-		Line edgeBT = new Line(b, t);
-		Line edgeTC = new Line(t, c);
-		Line edgeDT = new Line(d, t);
-		Line edgeAB = new Line(a, b);
-		Line edgeCB = new Line(c, b);
-		Line edgeCD = new Line(c, d);
-		Line edgeAD = new Line(a, d);
-		
-		List<Triangle> sides = Arrays.asList(
-				new Triangle(edgeAB, edgeBT, edgeTA),
-				new Triangle(edgeCB, edgeBT, edgeTC),
-				new Triangle(edgeCD, edgeDT, edgeTC),
-				new Triangle(edgeAD, edgeDT, edgeTA));
-				
-		Mountain mountain = new Mountain(sides);
-
+		Mountain mountain = Mountain.createMountain(1000, 1000, 5);
 		runMountainFrame(mountain, 600);
 	}
 	

@@ -1,6 +1,8 @@
-package de.tkuester.particles.model;
+package de.tkuester.space3d.mountain.model;
 
 import java.util.Random;
+
+import de.tkuester.space3d.Point3D;
 
 /**
  * Class representing a Line, making up one of the sides of a Triangle.
@@ -38,5 +40,35 @@ public class Line {
 			this.right = new Line(midpoint, target);
 		}
 	}
+
+	@Override
+	public String toString() {
+		return String.format("Line(%s, %s)", source, target);
+	}
+
 	
+	/**
+	 * Inverse of a line; reference to original Line and segments,
+	 * but with order reversed. Needed for odd-sided mountains.
+	 *
+	 * @author tkuester
+	 */
+	public static class Inverse extends Line {
+
+		private final Line line;
+
+		public Inverse(Line line) {
+			super(line.target, line.source);
+			this.line = line;
+		}
+
+		@Override
+		public void split() {
+			if (this.left == null && this.right == null) {
+				this.line.split();
+				this.left = new Inverse(line.right);
+				this.right = new Inverse(line.left);
+			}
+		}
+	}
 }

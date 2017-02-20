@@ -1,4 +1,4 @@
-package de.tkuester.particles;
+package de.tkuester.space3d.particles;
 
 import java.awt.event.ActionEvent;
 
@@ -6,8 +6,8 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import de.tkuester.particles.model.Particle;
-import de.tkuester.particles.model.Universe;
+import de.tkuester.space3d.particles.model.Particle;
+import de.tkuester.space3d.particles.model.Universe;
 
 /**
  * Class for running/testing the universe. This just creates a new universe 

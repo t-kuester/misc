@@ -1,7 +1,7 @@
-package de.tkuester.particles;
+package de.tkuester.space3d.particles;
 
-import de.tkuester.particles.model.Point3D;
-import de.tkuester.particles.model.Universe;
+import de.tkuester.space3d.Point3D;
+import de.tkuester.space3d.particles.model.Universe;
 
 /**
  * Class for doing performance benchmarks.
