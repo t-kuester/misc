@@ -7,6 +7,10 @@ class BTree:
 	"""
 
 	def __init__(self, value=None, left=None, right=None, count=0, d=0):
+		"""Create new Binary Search Tree. If value, left, and right are supplied,
+		they have to be in the correct order already. A leaf node is represented
+		as BTree(X, BTree(None, None, None), BTree(None, None, None)).
+		"""
 		self.value = value
 		self.left = left
 		self.right = right
@@ -14,6 +18,9 @@ class BTree:
 		self.d = d
 
 	def insert(self, value):
+		"""Insert element into tree. Either add a new node in the correct place
+		in the tree, or increment the count for an existing element.
+		"""
 		if self.value is None:
 			self.value = value
 			self.count = 1
@@ -27,6 +34,9 @@ class BTree:
 			self.right.insert(value)
 
 	def contains(self, value):
+		"""Check whether the given element is contained in the tree and return
+		its count, or 0 if it is not contained. Also works for boolean checks.
+		"""
 		if self.value is None:
 			return 0
 		if self.value == value:
@@ -37,18 +47,25 @@ class BTree:
 			return self.right.contains(value)
 
 	def num(self):
+		"""Get total number of elements in the tree, including duplicates."""
 		if self.value is None:
 			return 0
 		else:
 			return self.left.num() + self.count + self.right.num()
 
 	def getmin(self):
+		"""Get minimum element in the tree."""
 		return self.value if self.left.value is None else self.left.getmin()
 
 	def getmax(self):
+		"""Get maximum element in the tree."""
 		return self.value if self.right.value is None else self.right.getmax()
 
 	def lower(self, value):
+		"""Get portion of the tree strictly lower than the given element.
+		The method does not alter the original tree, but the result reuses nodes
+		of the original, so altering it may alter the original.
+		"""
 		if self.value is None:
 			return self
 		if self.value >= value:
@@ -57,6 +74,10 @@ class BTree:
 			return BTree(self.value, self.left, self.right.lower(value), self.count, self.d)
 
 	def upper(self, value):
+		"""Get portion of the tree strictly greater than the given element.
+		The method does not alter the original tree, but the result reuses nodes
+		of the original, so altering it may alter the original.
+		"""
 		if self.value is None:
 			return self
 		if self.value <= value:
@@ -65,6 +86,8 @@ class BTree:
 			return BTree(self.value, self.left.upper(value), self.right, self.count, self.d)
 
 	def inorder(self):
+		"""Return list of elements of the tree in-order, expanding duplicates.
+		"""
 		if self.value is None:
 			return []
 		else:
@@ -73,6 +96,7 @@ class BTree:
 			        self.right.inorder())
 
 	def height(self):
+		"""Get the height of the tree."""
 		return self.d if self.value is None else max(self.left.height(), self.right.height())
 
 	def __str__(self):
