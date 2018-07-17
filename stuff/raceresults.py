@@ -41,18 +41,17 @@ def download(base_url, first, last, filename, parser):
 def plot(filename):
 	"""Load previously parsed times from file and plot as histogram.
 	"""
-	seconds = []
+	minutes = []
 	# read from results file
 	with open(filename) as f:
 		for time in f:
 			h, m, s = map(int, time.split(":"))
-			secs = 60 * 60 * h + 60 * m + s
-			seconds.append(secs)
+			minutes.append(60 * h + m + s / 60.)
 
 	# print ascii histogram
-	hist, bins = np.histogram(seconds, bins=100)
+	hist, bins = np.histogram(minutes, bins=100)
 	for c, t in zip(hist, bins):
-		print("%3d %s" % (t, "*" * (c/10)))
+		print("%3f %s" % (t, "*" * (c/10)))
 
 	# print mathplotlib histogram
 	width = 0.7 * (bins[1] - bins[0])
@@ -63,5 +62,5 @@ def plot(filename):
 
 url = "http://results.berliner-halbmarathon.de/2017/?page=%d&event=HML&num_results=100&pid=search&search[nation]=%%25&search_sort=place_nosex"
 result = "result.txt"
-#~ download(url, 1, 156, result, parse_berlinhalf)
+download(url, 1, 256, result, parse_berlinhalf)
 plot(result)
