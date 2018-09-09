@@ -3,7 +3,7 @@
 
 class BTree:
 	"""Class representing a Binary Search Tree.
-	TODO: delete arbitrary nodes
+	TODO: delete arbitrary nodes, getlower, getupper
 	"""
 
 	def __init__(self, value=None, left=None, right=None, count=0, d=0):
