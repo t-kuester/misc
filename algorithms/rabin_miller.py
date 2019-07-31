@@ -1,3 +1,5 @@
+# https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
+# for n <= 1.3*10^6, testing against a = 2 and a = 3 is enough
 
 def rabin_miller(n):
 	if n == 2 or n == 3: return True
