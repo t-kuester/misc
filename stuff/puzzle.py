@@ -37,11 +37,15 @@ def translate(piece, pos, where):
     wx, wy, wz = where
     return tuple((wx+x-px, wy+y-py, wz+z-pz) for (x,y,z) in piece)
 
+fits_count = 0
 def fits(space, piece, pos, where):
-    return all(0 <= x < space.x and 
-               0 <= y < space.y and 
-               0 <= z < space.z and 
-               space.field[x][y][z] == 0 for (x,y,z) in translate(piece, pos, where))
+    global fits_count
+    fits_count += 1
+    X,Y,Z,F=space
+    return all(0 <= x < X and 
+               0 <= y < Y and 
+               0 <= z < Z and 
+               F[x][y][z] == 0 for (x,y,z) in translate(piece, pos, where))
 
 def place(space, piece, pos, where, symbol):
     for x, y, z in translate(piece, pos, where):
@@ -58,17 +62,28 @@ def find_solution(space, empty, pieces, i=0):
     global count
     count += 1
     print(count, len(empty), "-"*i,i)
-    #~if count > 100: return False
+    if MAX_ITER and count > MAX_ITER: return
+
+    best = None
+    def poss(where):
+        res = set()
+        for comb in ((piece, rot, pos)
+                for piece in pieces if pieces[piece] > 0
+                for rot in rotations(piece)
+                for pos in rot if fits(space, rot, pos, where)):
+            res.add(comb)
+            if best and len(res) >= best: return res | {None}
+        return res
     
     # get valid pieces, rotations, and positions for all empty positions
     possibilities = {}
     for where in empty: #_positions(space):
-        possibilities[where] = {(piece, rot, pos)
-                             for piece in pieces if pieces[piece] > 0
-                             for rot in rotations(piece)
-                             for pos in rot if fits(space, rot, pos, where)}
-        if not possibilities[where]:
-            break
+        possibilities[where] = poss(where)
+        if best is None or len(possibilities[where]) < best:
+            best = len(possibilities[where])
+        if best == 0:
+            return
+        
     # if none, return solution
     if not possibilities:
         return space
@@ -91,15 +106,13 @@ def find_solution(space, empty, pieces, i=0):
             pieces[piece] += 1
             empty |= trans
     
+MAX_ITER = None
 
 pieces = {((0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,1,2)): 25}
 space = create_space(5, 5, 5)
 
 #~pieces = {((0,0,0),(0,0,1),(0,1,1)): 12}
 #~space = create_space(3, 3, 4)
-
-#~pieces = {((0,0,0),): 6}
-#~space = create_space(2, 2, 1)
 
 start = time.time()
 res = find_solution(space, empty_positions(space), pieces)
@@ -109,3 +122,4 @@ if res:
 else:
     print("NO SOLUTION FOUND")
 print(time.time() - start)
+print(fits_count)
