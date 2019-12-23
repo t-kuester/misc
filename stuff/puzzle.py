@@ -4,7 +4,8 @@
 # more caching?
 # no passing of "space" and "pieces" parameters (faster or slower?)
 # restrict placement for first corner-piece to TWO (instead of 12)
-# problem with updating "empty"? fewer expansions and faster without
+# ~10% faster without debuging path and assuming infinite pieces
+# ~20% faster without printing in each expansion
 
 import functools, collections, time
 
@@ -77,7 +78,7 @@ def get_possibilities_early_abort(space, empty, pieces, last_poss):
         return res
     
     possibilities = {}
-    for where in empty: #_positions(space):
+    for where in empty:
         possibilities[where] = poss(where)
         if best is None or len(possibilities[where]) < best:
             best = len(possibilities[where])
@@ -92,13 +93,48 @@ def get_possibilities_reuse(space, empty, pieces, last_poss):
     for where in empty:
         possibilities[where] = {(piece, rot, pos)
                     for (piece, rot, pos) in last_poss[where]
-                    if pieces[piece] > 0 and fits(space, rot, pos, where)}
+                    if pieces[piece] > 0 
+                    if fits(space, rot, pos, where)}
         if not possibilities[where]:
             break
     return possibilities
 
+NOT_CALCULATED = [None] * 9999
+def get_possibilities_early_abort_reuse(space, empty, pieces, last_poss):
+    # LESS THAN EARLYABORT, BUT MORE THAN PURE REUSE
+    best = None
+    
+    def pos_new(where):
+        return ((piece, rot, pos)
+                 for piece in pieces if pieces[piece] > 0
+                 for rot in rotations(piece)
+                 for pos in rot if fits(space, rot, pos, where))
+    
+    def pos_old(where):
+        return ((piece, rot, pos)
+                 for (piece, rot, pos) in last_poss[where]
+                 if pieces[piece] > 0 if fits(space, rot, pos, where))
+
+    def poss(where, gen):
+        res = set()
+        for comb in gen(where):
+            res.add(comb)
+            if best and len(res) >= best: return NOT_CALCULATED
+        return res
+    
+    possibilities = {}
+    for where in empty:
+        possibilities[where] = poss(where, 
+                (pos_old if last_poss[where] is not NOT_CALCULATED else pos_new))
+        if best is None or len(possibilities[where]) < best:
+            best = len(possibilities[where])
+        if best == 0:
+            break
+    return possibilities
+
+
 count = 0
-def find_solution(space, empty, pieces, last_poss, n=1, path=[]):
+def find_solution(space, pieces, last_poss, n=1, path=[]):
     global count
     count += 1
     print(count, n, *path)
@@ -107,6 +143,7 @@ def find_solution(space, empty, pieces, last_poss, n=1, path=[]):
     empty = empty_positions(space)
     #~possibilities = get_possibilities_early_abort(space, empty, pieces, last_poss)
     possibilities = get_possibilities_reuse(space, empty, pieces, last_poss)
+    #~possibilities = get_possibilities_early_abort_reuse(space, empty, pieces, last_poss)
 
     # if none, return solution
     if not possibilities:
@@ -119,16 +156,13 @@ def find_solution(space, empty, pieces, last_poss, n=1, path=[]):
             # apply piece by setting the fields in space to some increasing number
             place(space, rot, pos, where, n)
             pieces[piece] -= 1
-            trans = set(translate(rot, pos, where))
-            empty -= trans
             path.append("%d/%d" % (i, len(possibilities[where])))
             # recurse
-            if find_solution(space, empty, pieces, possibilities, n+1, path):
+            if find_solution(space, pieces, possibilities, n+1, path):
                 return True
             # reset fields to zero
             place(space, rot, pos, where, 0)
             pieces[piece] += 1
-            empty |= trans
             path.pop()
     return False
     
@@ -160,7 +194,7 @@ space = create_space(5, 5, 5)
 all_possibilities = get_possibilities_all(space, empty_positions(space), pieces, None)
 
 start = time.time()
-if find_solution(space, empty_positions(space), pieces, all_possibilities):
+if find_solution(space, pieces, all_possibilities):
     print("SOLUTION FOUND")
     print_space(space)
 else:
