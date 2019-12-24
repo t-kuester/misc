@@ -1,7 +1,6 @@
 # TODO
 # test again with smaller example
 # run through profiler, try to make faster
-# no passing of "space" and "pieces" parameters (faster or slower?)
 # restrict placement for first corner-piece to TWO (instead of 12)
 # ~10% faster without debuging path and assuming infinite pieces
 # ~20% faster without printing in each expansion
@@ -12,6 +11,8 @@
 from functools import lru_cache, partial
 from collections import namedtuple
 import time
+
+MAX_ITER = None
 
 Space = namedtuple("Space", "x y z field")
 Piece = namedtuple("Piece", "kind pos")
@@ -113,6 +114,8 @@ def find_solution(space, pieces, last_poss, n=1, path=[]):
         # find position with fewest possibilities
         where = min(possibilities, key=partial(num_poss, possibilities))
         # test all such possibilities
+        # XXX using sorted to get stable result irrelevant of tuple hashing order
+        #~for i, piece in enumerate(sorted(possibilities[where]), start=1):
         for i, piece in enumerate(possibilities[where], start=1):
             # apply piece by setting the fields in space to some increasing number
             place(space, piece, n)
@@ -143,31 +146,33 @@ def print_space(space):
         for line in level:
             print(*map("{:2d}".format, line))
 
-    
-MAX_ITER = 100
 
-pieces = {((0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,1,2)): 25}
-space = create_space(5, 5, 5)
+def main():
+    pieces = {((0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,1,2)): 25}
+    space = create_space(5, 5, 5)
 
-#~pieces = {((0,0,0),(0,0,1),(0,1,1)): 12}
-#~space = create_space(3, 3, 4)
+    #~pieces = {((0,0,0),(0,0,1),(0,1,1)): 12}
+    #~space = create_space(3, 3, 4)
 
-all_possibilities = {where: {trans for piece in pieces 
-                                   for rot in rotations(piece)
-                                   for trans in translations(rot, where)
-                                   if fits(space, trans)}
-                     for where in empty_positions(space)}
+    all_possibilities = {where: {trans for piece in pieces 
+                                       for rot in rotations(piece)
+                                       for trans in translations(rot, where)
+                                       if fits(space, trans)}
+                         for where in empty_positions(space)}
 
-start = time.time()
-try:
-    if find_solution(space, pieces, all_possibilities):
-        print("SOLUTION FOUND")
-        print_space(space)
-    else:
-        print("NO SOLUTION FOUND")
-except KeyboardInterrupt:
-    print("aborted")
-print("time", time.time() - start)
-print("calls to fits", fits_count)
-# 129528 17 1/12 1/8 1/8 5/8 1/8 3/7 2/3 2/4 1/2 3/4 4/4 4/4 1/1 3/4 4/4 4/4
-# 171206 12 1/12 1/8 1/8 5/8 8/8 1/8 1/7 3/4 3/4 2/4 6/6
+    start = time.time()
+    try:
+        if find_solution(space, pieces, all_possibilities):
+            print("SOLUTION FOUND")
+            print_space(space)
+        else:
+            print("NO SOLUTION FOUND")
+    except KeyboardInterrupt:
+        print("aborted")
+    print("time", time.time() - start)
+    print("calls to fits", fits_count)
+    # 129528 17 1/12 1/8 1/8 5/8 1/8 3/7 2/3 2/4 1/2 3/4 4/4 4/4 1/1 3/4 4/4 4/4
+    # 171206 12 1/12 1/8 1/8 5/8 8/8 1/8 1/7 3/4 3/4 2/4 6/6
+
+if __name__ == "__main__":
+    main()
