@@ -5,10 +5,10 @@
 PRIMITIVES = ("", "one", "two", "three", "four", "five",
 			  "six", "seven", "eight", "nine", "ten",
 			  "eleven", "twelve", "thirteen", "fourteen", "fifteen",
-			  "sixteen", "seventeen", "eithteen", "nineteen")
+			  "sixteen", "seventeen", "eighteen", "nineteen")
 
 # primitives for multiples of ten              
-TENS = ("", "ten", "twenty", "thirty", "fourty", "fifty",
+TENS = ("", "ten", "twenty", "thirty", "forty", "fifty",
 		"sixty", "seventy", "eighty", "ninety")
 
 # some potencies; higher ones are given in exponential form
@@ -22,7 +22,7 @@ def saynumber(number):
 	while number:
 		words = saynumber_1000(number) + [next(potencies)] + words
 		number = number // 1000
-	return " ".join(words) if words else "zero"
+	return " ".join(filter(None, words)) if words else "zero"
 
 def saynumber_1000(number):
 	"""Spell last three digits of number, ignore the rest.
