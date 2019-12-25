@@ -2,17 +2,27 @@
 # test again with smaller example
 # run through profiler, try to make faster
 # restrict placement for first corner-piece to TWO (instead of 12)
-# ~10% faster without debuging path and assuming infinite pieces
-# ~20% faster without printing in each expansion
 # no more caching needed when reusing old positions
-# use type hints
+# use type hints? only with Python 3.5
 # use classes?
 
 from functools import lru_cache, partial
 from collections import namedtuple
 import time
 
-MAX_ITER = None
+# PERFORMANCE
+# ~10% faster without debuging path and assuming infinite pieces
+# ~20% faster without printing in each expansion
+# MAX_ITER=100:  0.75 sec,  79k fits
+# MAX_ITER=1000: 5.06 sec, 404k fits
+# sorted:
+# MAX_ITER=100:  1.0 sec,  93k fits
+# MAX_ITER=1000: 6.2 sec, 490k fits
+# with Piece namedtuple and available check:
+# MAX_ITER=100:  1.0 sec,  93k fits
+# MAX_ITER=1000: 6.8 sec, 490k fits
+
+MAX_ITER = 100
 
 Space = namedtuple("Space", "x y z field")
 Piece = namedtuple("Piece", "kind pos")
@@ -26,13 +36,13 @@ def rotations(piece):
         return ((x4, y4, z3) for y2, z2 in rot(y, z)
                              for x3, z3 in rot(x, z2)
                              for x4, y4 in rot(x3, y2))
-    return set(zip(*map(rotate, piece)))
+    return [Piece(piece.kind, tuple(t)) for t in set(zip(*map(rotate, piece.pos)))]
 
 @lru_cache(None)
 def translations(piece, where):
     wx, wy, wz = where
-    return [tuple((wx+x-px, wy+y-py, wz+z-pz) for (x,y,z) in piece)
-            for (px, py, pz) in piece]
+    return [Piece(piece.kind, tuple((wx+x-px, wy+y-py, wz+z-pz) for (x,y,z) in piece.pos))
+            for (px, py, pz) in piece.pos]
 
 fits_count = 0
 def fits(space, piece):
@@ -42,23 +52,21 @@ def fits(space, piece):
     return all(0 <= x < X and 
                0 <= y < Y and 
                0 <= z < Z and 
-               F[x][y][z] == 0 for (x,y,z) in piece)
+               F[x][y][z] == 0 for (x,y,z) in piece.pos)
 
 def place(space, piece, symbol):
-    for (x, y, z) in piece:
+    for (x, y, z) in piece.pos:
         space.field[x][y][z] = symbol
 
 def num_poss(poss, x):
     return len(poss[x])
 
-def get_possibilities_reuse(space, pieces, last_poss):
-    #MAX_ITER=100:  0.75 sec,  79k fits
-    #MAX_ITER=1000: 5.06 sec, 404k fits
+def get_possibilities_reuse(space, pieces, available, last_poss):
     possibilities = {}
     for where in sorted(empty_positions(space), key=partial(num_poss, last_poss)):
         possibilities[where] = {piece
                     for piece in last_poss[where]
-                    #~if pieces[piece] > 0 
+                    if available[piece.kind] > 0 
                     if fits(space, piece)}
         if not possibilities[where]:
             break
@@ -99,13 +107,13 @@ def get_possibilities_reuse_early_abort(space, pieces, last_poss):
 
 
 count = 0
-def find_solution(space, pieces, last_poss, n=1, path=[]):
+def find_solution(space, pieces, available, last_poss, n=1, path=[]):
     global count
     count += 1
     print(count, n, *path)
     if MAX_ITER and count > MAX_ITER: return
 
-    possibilities = get_possibilities_reuse(space, pieces, last_poss)
+    possibilities = get_possibilities_reuse(space, pieces, available, last_poss)
 
     # if none, return solution
     if not possibilities:
@@ -116,17 +124,17 @@ def find_solution(space, pieces, last_poss, n=1, path=[]):
         # test all such possibilities
         # XXX using sorted to get stable result irrelevant of tuple hashing order
         #~for i, piece in enumerate(sorted(possibilities[where]), start=1):
-        for i, piece in enumerate(possibilities[where], start=1):
+        for i, piece in enumerate(sorted(possibilities[where]), start=1):
             # apply piece by setting the fields in space to some increasing number
             place(space, piece, n)
-            #~pieces[piece] -= 1
+            available[piece.kind] -= 1
             path.append("%d/%d" % (i, len(possibilities[where])))
             # recurse
-            if find_solution(space, pieces, possibilities, n+1, path):
+            if find_solution(space, pieces, available, possibilities, n+1, path):
                 return True
             # reset fields to zero
             place(space, piece, 0)
-            #~pieces[piece] += 1
+            available[piece.kind] += 1
             path.pop()
     return False
     
@@ -148,10 +156,12 @@ def print_space(space):
 
 
 def main():
-    pieces = {((0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,1,2)): 25}
+    pieces = [Piece(1, ((0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,1,2)))]
+    available = {1: 25}
     space = create_space(5, 5, 5)
 
-    #~pieces = {((0,0,0),(0,0,1),(0,1,1)): 12}
+    #~pieces = [Piece(1, ((0,0,0),(0,0,1),(0,1,1)))]
+    #~available = {1: 12}
     #~space = create_space(3, 3, 4)
 
     all_possibilities = {where: {trans for piece in pieces 
@@ -162,7 +172,7 @@ def main():
 
     start = time.time()
     try:
-        if find_solution(space, pieces, all_possibilities):
+        if find_solution(space, pieces, available, all_possibilities):
             print("SOLUTION FOUND")
             print_space(space)
         else:
