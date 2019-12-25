@@ -83,12 +83,12 @@ if __name__ == "__main__":
 	persons = (abe, mona, homer, herbert, jaqueline, marge, patty, selma, bart, lisa, maggie)
 
 	# create initial beliefs from objects
-	beliefs = create_beliefs(*persons)
-	print_all("Initial Beliefs", beliefs)
+	core_beliefs = create_beliefs(*persons)
+	print_all("Initial Beliefs", core_beliefs)
 
 	# apply deduction rules to initial beliefs	
-	beliefs = deduce(beliefs, *rules)
-	print_all("Inferred Beliefs", beliefs)
+	beliefs = deduce(core_beliefs, *rules)
+	print_all("Inferred Beliefs", [b for b in beliefs if b not in core_beliefs])
 
 	# test some predicates
 	test(Uncle(x, y), beliefs)
