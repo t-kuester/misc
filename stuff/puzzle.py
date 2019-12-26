@@ -21,8 +21,11 @@ import time
 # with Piece namedtuple and available check:
 # MAX_ITER=100:  1.0 sec,  93k fits
 # MAX_ITER=1000: 6.8 sec, 490k fits
+# reuse & abort
+# MAX_ITER=100:  0.6 sec,  38k fits
+# MAX_ITER=1000: 4.5 sec, 166k fits
 
-MAX_ITER = 100
+MAX_ITER = 0
 
 Space = namedtuple("Space", "x y z field")
 Piece = namedtuple("Piece", "kind pos")
@@ -66,42 +69,23 @@ def get_possibilities_reuse(space, pieces, available, last_poss):
     for where in sorted(empty_positions(space), key=partial(num_poss, last_poss)):
         possibilities[where] = {piece
                     for piece in last_poss[where]
-                    if available[piece.kind] > 0 
+                    if available[piece.kind]
                     if fits(space, piece)}
         if not possibilities[where]:
             break
     return possibilities
 
-NOT_CALCULATED = [None] * 9999
-def get_possibilities_reuse_early_abort(space, pieces, last_poss):
-    # LESS THAN EARLYABORT, BUT MORE THAN PURE REUSE
-    best = None
-    
-    def pos_new(where):
-        return ((piece, rot, pos)
-                 for piece in pieces if pieces[piece] > 0
-                 for rot in rotations(piece)
-                 for pos in rot if fits(space, rot, pos, where))
-    
-    def pos_old(where):
-        return ((piece, rot, pos)
-                 for (piece, rot, pos) in last_poss[where]
-                 if pieces[piece] > 0 if fits(space, rot, pos, where))
-
-    def poss(where, gen):
-        res = set()
-        for comb in gen(where):
-            res.add(comb)
-            if best and len(res) >= best: return NOT_CALCULATED
-        return res
-    
+def get_possibilities_reuse_abort(space, pieces, available, last_poss):
     possibilities = {}
-    for where in empty_positions(space):
-        possibilities[where] = poss(where, 
-                (pos_old if last_poss[where] is not NOT_CALCULATED else pos_new))
-        if best is None or len(possibilities[where]) < best:
-            best = len(possibilities[where])
-        if best == 0:
+    best = max(map(len, last_poss.values())) # XXX why does min not work here?
+    for where in sorted(empty_positions(space), key=partial(num_poss, last_poss)):
+        possibilities[where] = set()
+        for piece in last_poss[where]:
+            if len(possibilities[where]) > best or \
+                    available[piece.kind] and fits(space, piece):
+                possibilities[where].add(piece)
+        best = min(best, len(possibilities[where]))
+        if not possibilities[where]:
             break
     return possibilities
 
@@ -113,7 +97,8 @@ def find_solution(space, pieces, available, last_poss, n=1, path=[]):
     print(count, n, *path)
     if MAX_ITER and count > MAX_ITER: return
 
-    possibilities = get_possibilities_reuse(space, pieces, available, last_poss)
+    #~possibilities = get_possibilities_reuse(space, pieces, available, last_poss)
+    possibilities = get_possibilities_reuse_abort(space, pieces, available, last_poss)
 
     # if none, return solution
     if not possibilities:
@@ -121,9 +106,7 @@ def find_solution(space, pieces, available, last_poss, n=1, path=[]):
     else:    
         # find position with fewest possibilities
         where = min(possibilities, key=partial(num_poss, possibilities))
-        # test all such possibilities
-        # XXX using sorted to get stable result irrelevant of tuple hashing order
-        #~for i, piece in enumerate(sorted(possibilities[where]), start=1):
+        # test all such possibilities (sorted for reproducibility of results)
         for i, piece in enumerate(sorted(possibilities[where]), start=1):
             # apply piece by setting the fields in space to some increasing number
             place(space, piece, n)
