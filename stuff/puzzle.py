@@ -1,32 +1,38 @@
-# TODO
-# no more caching needed when reusing old positions
-# use classes?
-#
-# PERFORMANCE
-# ~10% faster without debuging path and assuming infinite pieces
-# ~20% faster without printing in each expansion
-# ~10% faster without namedtuple
-# reuse & abort
-# MAX_ITER=100:  0.6 sec,  38k fits
-# MAX_ITER=1000: 4.5 sec, 166k fits
-#
-# First version not finding a solution even after 2h of running time and 170k
-# tested combinations; later found solution after a few minutes and 18k combs 
-# (lucky run?); using sorted for deterministic results --> solution reliably 
-# found after a few seconds and 2.6k combinations.
+"""
+Puzzle solver, 2019, Tobias Kuester
 
-from functools import lru_cache, partial
+Made this for solving a particularly difficult wooden puzzle I had some problems
+with, but also made it more generic so it can be used for similar puzzles where
+differently shaped wooden blocks have to be put together to for some rectangular
+shape. The first version was not finding a solution even after 2h of running
+time and 170k tested combinations; later found solution after a few minutes and
+18k combs (lucky run?); using sorted for deterministic results, now the solution
+is reliably found after a few seconds and 2.6k combinations.
+
+TODO
+- use classes?
+
+PERFORMANCE
+- ~10% faster without debuging path and assuming infinite pieces
+- ~20% faster without printing in each expansion
+- ~10% faster without namedtuple
+- MAX_ITER=100:  0.6 sec,  38k fits
+- MAX_ITER=1000: 4.5 sec, 166k fits
+"""
+ 
+from functools import partial
 from collections import namedtuple
 import time
 
-MAX_ITER = 1000
+MAX_ITER = None
 
 # representation of the "Space" available for the blocks, and current blocks
 Space = namedtuple("Space", "x y z field")
+
 # representation of a single piece, with prototype and individual blocks
 Piece = namedtuple("Piece", "kind pos")
 
-@lru_cache(None)
+
 def rotations(piece):
     """Create all rotations of a given piece around all three axes; rotations
     are returnedas a set, so duplicates are removed. Rotations retain the "kind"
@@ -41,7 +47,6 @@ def rotations(piece):
                              for x4, y4 in rot(x3, y2))
     return [Piece(piece.kind, tuple(t)) for t in set(zip(*map(rotate, piece.pos)))]
 
-@lru_cache(None)
 def translations(piece, where):
     """Create all translations of a piece around a certain position `where`, 
     i.e. all translations in which the piece in some way covers that position.
@@ -49,6 +54,17 @@ def translations(piece, where):
     wx, wy, wz = where
     return [Piece(piece.kind, tuple((wx+x-px, wy+y-py, wz+z-pz) for (x,y,z) in piece.pos))
             for (px, py, pz) in piece.pos]
+
+def all_possibilities(space, pieces):
+    """Get all possibilities (rotations and translations) of where to fit the
+    given pieces into the positions in the puzzle space.
+    """
+    return {where: {trans for piece in pieces 
+                          for rot in rotations(piece)
+                          for trans in translations(rot, where)
+                          if fits(space, trans)}
+                    for where in empty_positions(space)}
+
 
 fits_count = 0
 def fits(space, piece):
@@ -74,7 +90,7 @@ def num_poss(poss, x):
     """Shorthand for number of possibilities, for sorting."""
     return len(poss[x])
 
-def get_possibilities_reuse_abort(space, pieces, available, last_poss):
+def get_possibilities(space, available, last_poss):
     """Determine possible piece placements for each position in the puzzle space.
     This has the greatest potential for improvement. Currently, it uses last
     turn's possibilities for restricting those further, aborting early if any
@@ -106,7 +122,7 @@ def find_solution(space, pieces, available, last_poss, n=1, path=[]):
     print(count, n, *path)
     if MAX_ITER and count > MAX_ITER: return
 
-    possibilities = get_possibilities(space, pieces, available, last_poss)
+    possibilities = get_possibilities(space, available, last_poss)
 
     # if none, return solution
     if not possibilities:
@@ -156,19 +172,9 @@ def main():
     available = {1: 25}
     space = create_space(5, 5, 5)
 
-    #~pieces = [Piece(1, ((0,0,0),(0,0,1),(0,1,1)))]
-    #~available = {1: 12}
-    #~space = create_space(3, 3, 4)
-
-    all_possibilities = {where: {trans for piece in pieces 
-                                       for rot in rotations(piece)
-                                       for trans in translations(rot, where)
-                                       if fits(space, trans)}
-                         for where in empty_positions(space)}
-
     start = time.time()
     try:
-        if find_solution(space, pieces, available, all_possibilities):
+        if find_solution(space, pieces, available, all_possibilities(space, pieces)):
             print("SOLUTION FOUND")
             print_space(space)
         else:
