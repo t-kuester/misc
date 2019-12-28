@@ -1,37 +1,37 @@
 # TODO
-# test again with smaller example
-# run through profiler, try to make faster
-# restrict placement for first corner-piece to TWO (instead of 12)
 # no more caching needed when reusing old positions
-# use type hints? only with Python 3.5
 # use classes?
+#
+# PERFORMANCE
+# ~10% faster without debuging path and assuming infinite pieces
+# ~20% faster without printing in each expansion
+# ~10% faster without namedtuple
+# reuse & abort
+# MAX_ITER=100:  0.6 sec,  38k fits
+# MAX_ITER=1000: 4.5 sec, 166k fits
+#
+# First version not finding a solution even after 2h of running time and 170k
+# tested combinations; later found solution after a few minutes and 18k combs 
+# (lucky run?); using sorted for deterministic results --> solution reliably 
+# found after a few seconds and 2.6k combinations.
 
 from functools import lru_cache, partial
 from collections import namedtuple
 import time
 
-# PERFORMANCE
-# ~10% faster without debuging path and assuming infinite pieces
-# ~20% faster without printing in each expansion
-# MAX_ITER=100:  0.75 sec,  79k fits
-# MAX_ITER=1000: 5.06 sec, 404k fits
-# sorted:
-# MAX_ITER=100:  1.0 sec,  93k fits
-# MAX_ITER=1000: 6.2 sec, 490k fits
-# with Piece namedtuple and available check:
-# MAX_ITER=100:  1.0 sec,  93k fits
-# MAX_ITER=1000: 6.8 sec, 490k fits
-# reuse & abort
-# MAX_ITER=100:  0.6 sec,  38k fits
-# MAX_ITER=1000: 4.5 sec, 166k fits
+MAX_ITER = 1000
 
-MAX_ITER = 0
-
+# representation of the "Space" available for the blocks, and current blocks
 Space = namedtuple("Space", "x y z field")
+# representation of a single piece, with prototype and individual blocks
 Piece = namedtuple("Piece", "kind pos")
 
 @lru_cache(None)
 def rotations(piece):
+    """Create all rotations of a given piece around all three axes; rotations
+    are returnedas a set, so duplicates are removed. Rotations retain the "kind"
+    attribute of the original piece. Cacheable, but actually not needed.
+    """
     def rot(x,y):
         return ((x,y), (-y,x), (-x,-y), (y,-x))
     def rotate(point):
@@ -43,39 +43,44 @@ def rotations(piece):
 
 @lru_cache(None)
 def translations(piece, where):
+    """Create all translations of a piece around a certain position `where`, 
+    i.e. all translations in which the piece in some way covers that position.
+    """
     wx, wy, wz = where
     return [Piece(piece.kind, tuple((wx+x-px, wy+y-py, wz+z-pz) for (x,y,z) in piece.pos))
             for (px, py, pz) in piece.pos]
 
 fits_count = 0
 def fits(space, piece):
+    """Check whether the given piece (in a certain rotation and translation) 
+    fits into the space given the space's current layout. This accounts for most
+    of the work in the algorithm and thus comes with an invocation counter.
+    """
     global fits_count
     fits_count += 1
     X, Y, Z, F = space # ~20% faster
-    return all(0 <= x < X and 
-               0 <= y < Y and 
-               0 <= z < Z and 
+    return all(0 <= x < X and  0 <= y < Y and  0 <= z < Z and 
                F[x][y][z] == 0 for (x,y,z) in piece.pos)
 
 def place(space, piece, symbol):
+    """Set the position in the space corresponding to the piece to the given
+    symbol; later, the symbol shows where which piece should be. For resetting
+    the space, use symbol `0`.
+    """
     for (x, y, z) in piece.pos:
         space.field[x][y][z] = symbol
 
 def num_poss(poss, x):
+    """Shorthand for number of possibilities, for sorting."""
     return len(poss[x])
 
-def get_possibilities_reuse(space, pieces, available, last_poss):
-    possibilities = {}
-    for where in sorted(empty_positions(space), key=partial(num_poss, last_poss)):
-        possibilities[where] = {piece
-                    for piece in last_poss[where]
-                    if available[piece.kind]
-                    if fits(space, piece)}
-        if not possibilities[where]:
-            break
-    return possibilities
-
 def get_possibilities_reuse_abort(space, pieces, available, last_poss):
+    """Determine possible piece placements for each position in the puzzle space.
+    This has the greatest potential for improvement. Currently, it uses last
+    turn's possibilities for restricting those further, aborting early if any
+    position has no possibilities, or "fast-forwarding" if the current position
+    has already more than the currently most constrained one.
+    """
     possibilities = {}
     best = max(map(len, last_poss.values())) # XXX why does min not work here?
     for where in sorted(empty_positions(space), key=partial(num_poss, last_poss)):
@@ -89,16 +94,19 @@ def get_possibilities_reuse_abort(space, pieces, available, last_poss):
             break
     return possibilities
 
-
 count = 0
 def find_solution(space, pieces, available, last_poss, n=1, path=[]):
+    """Simple most-constrained-first backtracking algorithm. Get possible piece
+    placements for each position in the puzzle (reusing posibilities from last
+    turn for fewer calculations), then testing the possibilities of the most
+    restricted position one after the other, or backtracking no more possible.
+    """
     global count
     count += 1
     print(count, n, *path)
     if MAX_ITER and count > MAX_ITER: return
 
-    #~possibilities = get_possibilities_reuse(space, pieces, available, last_poss)
-    possibilities = get_possibilities_reuse_abort(space, pieces, available, last_poss)
+    possibilities = get_possibilities(space, pieces, available, last_poss)
 
     # if none, return solution
     if not possibilities:
@@ -123,15 +131,18 @@ def find_solution(space, pieces, available, last_poss, n=1, path=[]):
     
     
 def create_space(x, y, z):
+    """Helper for initializing a new puzzle space with given dimensions."""
     return Space(x, y, z, [[[0 for _ in range(z)] for _ in range(y)] for _ in range(x)])
 
 def empty_positions(space):
+    """Helper for getting all empty positions in the given puzzle space."""
     return {(x, y, z) for x in range(space.x) 
                       for y in range(space.y)
                       for z in range(space.z)
                       if space.field[x][y][z] == 0}
 
 def print_space(space):
+    """Print the different levels of the space, one after the other."""
     for i, level in enumerate(space.field):
         print("--- %d ---" % i)
         for line in level:
@@ -139,6 +150,8 @@ def print_space(space):
 
 
 def main():
+    """Main: Create representaition of the puzzle and run the algorithm.
+    """
     pieces = [Piece(1, ((0,0,0),(0,0,1),(0,0,2),(0,0,3),(0,1,2)))]
     available = {1: 25}
     space = create_space(5, 5, 5)
@@ -167,42 +180,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# 129528 17 1/12 1/8 1/8 5/8 1/8 3/7 2/3 2/4 1/2 3/4 4/4 4/4 1/1 3/4 4/4 4/4
-# ...
-# 171206 12 1/12 1/8 1/8 5/8 8/8 1/8 1/7 3/4 3/4 2/4 6/6
-# ...
-# 18275 26 1/12 1/8 1/8 1/8 1/5 6/7 2/4 4/5 3/3 1/4 3/5 2/2 1/2 1/1 1/2 3/3 1/2 2/4 1/1 1/2 1/1 1/1 1/1 1/1 1/1
-# SOLUTION FOUND
-# --- 0 ---
-# 17 15 15 15 15
-# 17 17 15 19 12
-# 17 19 19 19 19
-# 17 25 18 24 14
-# 18 18 18 18 20
-# --- 1 ---
-#  7  7  7  7  3
-# 16  6  7 23 12
-# 16 23 23 23 23
-# 16 25 24 24 14
-# 16 25 21 20 20
-# --- 2 ---
-#  5  5  5  5  3
-#  4  6  5 12 12
-# 11 11 11 11 14
-# 16 25 11 24 14
-# 21 21 21 21 20
-# --- 3 ---
-#  4  2  8  3  3
-#  4  6  8  8 12
-#  4  6  8 10 13
-#  4 25  8 24 14
-# 22 22 22 22 20
-# --- 4 ---
-#  2  2  2  2  3
-#  1  6  9 10 13
-#  1  1  9 10 13
-#  1  9  9 10 13
-#  1 22  9 10 13
-# time 236.98839902877808
-# calls to fits 7739188
